@@ -1,4 +1,3 @@
-/ebin
 /doc
 /logs
 /_test
@@ -7,8 +6,8 @@
 .DS_Store
 /TEST-*.xml
 /deps
-/.rebar
+/ebin
+*.beam
 /_rel
 *.swp
-*.beam
 *.dump
