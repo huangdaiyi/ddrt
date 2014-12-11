@@ -1,0 +1,1 @@
+start werl -args_file "./config/vm.args" -config "./config/sys.config"

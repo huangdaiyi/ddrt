@@ -1,0 +1,9 @@
+%% -*- erlang -*-
+{application, ddrt,
+ [{description, "ddrt"},
+  {vsn, "1.0.0"},
+  {modules, []},
+  {registered, [ddrt,ddrt_sup]},
+  {mod, {'ddrt_app', []}},
+  {env, []},
+  {applications, [kernel, stdlib]}]}.

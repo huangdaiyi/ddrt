@@ -1,0 +1,7 @@
+-sname ddrt@wcmis073
+-setcookie ddrt_dev
++K true
+-kernel error_logger silent
+-pa ebin 
+-pa deps/neg_hydra/ebin
+-s neg_hydra
