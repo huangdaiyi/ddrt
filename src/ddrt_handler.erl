@@ -10,6 +10,25 @@ request(get, Paths, DocRoot, _Req) ->
             {200, [], <<"rest full api">>};
         ["rest", "api", "v1"|_] -> {200, [], <<"rest full api">>};
         _ -> {404, [], <<>>}
+    end;
+
+request(post, Paths, DocRoot, _Req) ->
+    SafePaths = [string:to_lower(P) || P <- Paths],
+    case SafePaths of
+        ["rest", "api", "v1"|_] -> {200, [], <<"rest full api">>};
+        _ -> {404, [], <<>>}
+    end;
+request(put, Paths, DocRoot, _Req) ->
+    SafePaths = [string:to_lower(P) || P <- Paths],
+    case SafePaths of
+        ["rest", "api", "v1"|_] -> {200, [], <<"rest full api">>};
+        _ -> {404, [], <<>>}
+    end;
+request(head, Paths, DocRoot, _Req) ->
+    SafePaths = [string:to_lower(P) || P <- Paths],
+    case SafePaths of
+        ["rest", "api", "v1"|_] -> {200, [], <<"rest full api">>};
+        _ -> {404, [], <<>>}
     end.
 
 responsed(_Code, _Req) ->
