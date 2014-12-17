@@ -5,7 +5,6 @@
 .DS_Store
 /TEST-*.xml
 /ebin
-*.beam
 /_rel
 *.swp
 *.dump
