@@ -4,7 +4,6 @@
 /.eunit
 .DS_Store
 /TEST-*.xml
-/deps
 /ebin
 *.beam
 /_rel
