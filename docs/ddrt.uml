@@ -121,10 +121,10 @@
 <XPD:ATTR name="LineColor" type="string">clMaroon</XPD:ATTR>
 <XPD:ATTR name="FillColor" type="string">$00B9FFFF</XPD:ATTR>
 <XPD:ATTR name="FontFace" type="string">Comic Sans MS</XPD:ATTR>
-<XPD:ATTR name="Left" type="integer">200</XPD:ATTR>
-<XPD:ATTR name="Top" type="integer">240</XPD:ATTR>
-<XPD:ATTR name="Width" type="integer">123</XPD:ATTR>
-<XPD:ATTR name="Height" type="integer">91</XPD:ATTR>
+<XPD:ATTR name="Left" type="integer">208</XPD:ATTR>
+<XPD:ATTR name="Top" type="integer">236</XPD:ATTR>
+<XPD:ATTR name="Width" type="integer">148</XPD:ATTR>
+<XPD:ATTR name="Height" type="integer">106</XPD:ATTR>
 <XPD:REF name="Model">j5NIlYKNU0CWJOCT8JjmUgAA</XPD:REF>
 <XPD:OBJ name="NameCompartment" type="UMLNameCompartmentView" guid="TJ1bxJM9L0S0/F54/O+kogAA">
 <XPD:OBJ name="NameLabel" type="LabelView" guid="itp3G/Noe02kQ8TV6DmO+gAA">
@@ -153,10 +153,10 @@
 <XPD:ATTR name="LineColor" type="string">clMaroon</XPD:ATTR>
 <XPD:ATTR name="FillColor" type="string">$00B9FFFF</XPD:ATTR>
 <XPD:ATTR name="FontFace" type="string">Comic Sans MS</XPD:ATTR>
-<XPD:ATTR name="Left" type="integer">408</XPD:ATTR>
+<XPD:ATTR name="Left" type="integer">484</XPD:ATTR>
 <XPD:ATTR name="Top" type="integer">232</XPD:ATTR>
 <XPD:ATTR name="Width" type="integer">143</XPD:ATTR>
-<XPD:ATTR name="Height" type="integer">106</XPD:ATTR>
+<XPD:ATTR name="Height" type="integer">121</XPD:ATTR>
 <XPD:REF name="Model">avUGKmvGoUO2LRKsKONtAQAA</XPD:REF>
 <XPD:OBJ name="NameCompartment" type="UMLNameCompartmentView" guid="lITPf35obkKmnywaLUpCowAA">
 <XPD:OBJ name="NameLabel" type="LabelView" guid="VQ34LPym4EuG6ZF+P3ZVEAAA">
@@ -228,7 +228,7 @@
 <XPD:REF name="TypedFeatures[0]">jyegxdhG+UyQVtOz7JyKygAA</XPD:REF>
 <XPD:ATTR name="#Associations" type="integer">1</XPD:ATTR>
 <XPD:REF name="Associations[0]">R1F064Xp+UCrEH/oP3ijsAAA</XPD:REF>
-<XPD:ATTR name="#Attributes" type="integer">4</XPD:ATTR>
+<XPD:ATTR name="#Attributes" type="integer">3</XPD:ATTR>
 <XPD:OBJ name="Attributes[0]" type="UMLAttribute" guid="SG6GmrY2q0CNfO+cg6BPTAAA">
 <XPD:ATTR name="Name" type="string">group_id</XPD:ATTR>
 <XPD:ATTR name="StereotypeName" type="string">pk</XPD:ATTR>
@@ -245,10 +245,6 @@
 <XPD:ATTR name="TypeExpression" type="string">String</XPD:ATTR>
 <XPD:REF name="Owner">VoQoeQJ1nUyzT/H6STlESwAA</XPD:REF>
 </XPD:OBJ>
-<XPD:OBJ name="Attributes[3]" type="UMLAttribute" guid="hvkfWS4PmUKO9/Snx7YWDAAA">
-<XPD:ATTR name="Name" type="string">recipients</XPD:ATTR>
-<XPD:REF name="Owner">VoQoeQJ1nUyzT/H6STlESwAA</XPD:REF>
-</XPD:OBJ>
 </XPD:OBJ>
 <XPD:OBJ name="OwnedElements[2]" type="UMLClass" guid="WuRWgFDuukuRK1nhoFbO9QAA">
 <XPD:ATTR name="Name" type="string">users</XPD:ATTR>
@@ -263,7 +259,7 @@
 <XPD:REF name="TypedFeatures[1]">KBwiu/frDE+lyInjCB5i/wAA</XPD:REF>
 <XPD:ATTR name="#Associations" type="integer">1</XPD:ATTR>
 <XPD:REF name="Associations[0]">vlKRmHVVV0SmfIQKvsCVPQAA</XPD:REF>
-<XPD:ATTR name="#Attributes" type="integer">2</XPD:ATTR>
+<XPD:ATTR name="#Attributes" type="integer">3</XPD:ATTR>
 <XPD:OBJ name="Attributes[0]" type="UMLAttribute" guid="1jfuB2/OykWtbh4suh0XRgAA">
 <XPD:ATTR name="Name" type="string">user_id</XPD:ATTR>
 <XPD:ATTR name="StereotypeName" type="string">pk</XPD:ATTR>
@@ -273,6 +269,10 @@
 <XPD:OBJ name="Attributes[1]" type="UMLAttribute" guid="rbppl4Xo3U6d5+Z/10cr5QAA">
 <XPD:ATTR name="Name" type="string">email</XPD:ATTR>
 <XPD:ATTR name="TypeExpression" type="string">String</XPD:ATTR>
+<XPD:REF name="Owner">WuRWgFDuukuRK1nhoFbO9QAA</XPD:REF>
+</XPD:OBJ>
+<XPD:OBJ name="Attributes[2]" type="UMLAttribute" guid="AY0h1DgXKUOKMPFImi/pTAAA">
+<XPD:ATTR name="Name" type="string">type</XPD:ATTR>
 <XPD:REF name="Owner">WuRWgFDuukuRK1nhoFbO9QAA</XPD:REF>
 </XPD:OBJ>
 </XPD:OBJ>
@@ -302,8 +302,8 @@
 <XPD:REF name="Views[2]">9dWtYGSBrU22ErzfrxwghQAA</XPD:REF>
 <XPD:REF name="Views[3]">CEmtJ5MsPEm6ZLP9EgipEQAA</XPD:REF>
 <XPD:ATTR name="#TypedFeatures" type="integer">1</XPD:ATTR>
-<XPD:REF name="TypedFeatures[0]">vKrgxQZv7UqfZYbm7sgKJwAA</XPD:REF>
-<XPD:ATTR name="#Attributes" type="integer">2</XPD:ATTR>
+<XPD:REF name="TypedFeatures[0]">bwxk/VGPXEKVQnP1W+/IrwAA</XPD:REF>
+<XPD:ATTR name="#Attributes" type="integer">3</XPD:ATTR>
 <XPD:OBJ name="Attributes[0]" type="UMLAttribute" guid="NrLkf34V7k6dgKlPqN7raAAA">
 <XPD:ATTR name="Name" type="string">id</XPD:ATTR>
 <XPD:ATTR name="StereotypeName" type="string">pk</XPD:ATTR>
@@ -315,6 +315,11 @@
 <XPD:ATTR name="TypeExpression" type="string">String</XPD:ATTR>
 <XPD:REF name="Owner">j5NIlYKNU0CWJOCT8JjmUgAA</XPD:REF>
 </XPD:OBJ>
+<XPD:OBJ name="Attributes[2]" type="UMLAttribute" guid="zX8dIS7AeEu30/+l1V9AuQAA">
+<XPD:ATTR name="Name" type="string">groupid</XPD:ATTR>
+<XPD:ATTR name="StereotypeName" type="string">fk</XPD:ATTR>
+<XPD:REF name="Owner">j5NIlYKNU0CWJOCT8JjmUgAA</XPD:REF>
+</XPD:OBJ>
 </XPD:OBJ>
 <XPD:OBJ name="OwnedElements[5]" type="UMLClass" guid="avUGKmvGoUO2LRKsKONtAQAA">
 <XPD:ATTR name="Name" type="string">groups_users</XPD:ATTR>
@@ -324,7 +329,7 @@
 <XPD:REF name="Views[1]">PPqYvxBisU2MeKEdBIyOugAA</XPD:REF>
 <XPD:REF name="Views[2]">39XY+wx7y0GVmoiLN84CcAAA</XPD:REF>
 <XPD:REF name="Views[3]">yQQpAOFttECH9sa6SBGtXgAA</XPD:REF>
-<XPD:ATTR name="#Attributes" type="integer">4</XPD:ATTR>
+<XPD:ATTR name="#Attributes" type="integer">5</XPD:ATTR>
 <XPD:OBJ name="Attributes[0]" type="UMLAttribute" guid="oVp45vCMN0SSnpYB13yCxQAA">
 <XPD:ATTR name="Name" type="string">id</XPD:ATTR>
 <XPD:ATTR name="StereotypeName" type="string">pk</XPD:ATTR>
@@ -345,7 +350,11 @@
 <XPD:REF name="Type_">WuRWgFDuukuRK1nhoFbO9QAA</XPD:REF>
 <XPD:REF name="Owner">avUGKmvGoUO2LRKsKONtAQAA</XPD:REF>
 </XPD:OBJ>
-<XPD:OBJ name="Attributes[3]" type="UMLAttribute" guid="vKrgxQZv7UqfZYbm7sgKJwAA">
+<XPD:OBJ name="Attributes[3]" type="UMLAttribute" guid="HyDh4v+MtUeugjY7oDsZqAAA">
+<XPD:ATTR name="Name" type="string">receive_type</XPD:ATTR>
+<XPD:REF name="Owner">avUGKmvGoUO2LRKsKONtAQAA</XPD:REF>
+</XPD:OBJ>
+<XPD:OBJ name="Attributes[4]" type="UMLAttribute" guid="bwxk/VGPXEKVQnP1W+/IrwAA">
 <XPD:ATTR name="Name" type="string">domain_id</XPD:ATTR>
 <XPD:ATTR name="StereotypeName" type="string">fk</XPD:ATTR>
 <XPD:ATTR name="TypeExpression" type="string">domains</XPD:ATTR>
