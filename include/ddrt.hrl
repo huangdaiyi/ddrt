@@ -1,5 +1,5 @@
 
--record (usercontainer,{id,email,type}).
+-record (userentity,{email,type,receive_type,gname,template,dname}).
 
 -record (users, {id}).
 

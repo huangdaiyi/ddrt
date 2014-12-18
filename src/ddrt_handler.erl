@@ -5,21 +5,26 @@
 -include ("include/ddrt.hrl").
 
 
-% get the users
-request(get, Paths, _DocRoot, _Req) ->
+% get all users or a special user
+request(get, Paths, _DocRoot,Req) ->
     SafePaths = [string:to_lower(P) || P <- Paths],
-    case SafePaths of
-        ["rest", "api", "v1", "users"|_] ->
-            % io:format("~p~n", ddrt_db:select(get_users,usercontainer, [])),
-            % emysql:execute(mysql_pool,get_users,[]),
-            Result = emysql:execute(mysql_pool,get_users,[]),
-            io:format("~p~n", [Result]),
-            User = emysql:as_record(Result, usercontainer, record_info(fields, usercontainer)),
-            io:format("~p~n", [User]),
-            {200, [], <<"ok,users list">>};
+    case SafePaths of   
+        ["rest", "api", "v1", "users"|_] ->%get all user
+            Result = ddrt_db:select(get_users,userentity,[]),
+            Json = lists:map(fun(#userentity{dname = Dname, email = Email,type=Type,receive_type=Receivetype,gname=GroupName,template=Template}) -> 
+                {obj, [{domainname, Dname},{email,Email},{type,Type},{receivetype,Receivetype},{groupname,GroupName},{template,Template}]}
+            end, Result),
+            {200, [], list_to_binary(rfc4627:encode(Json))};
+        ["rest", "api", "v1", "user",UserID] -> % get a user
+            Result = ddrt_db:select(get_user,userentity,[UserID]),
+            Json = lists:map(fun(#userentity{dname = Dname, email = Email,type=Type,receive_type=Receivetype,gname=GroupName,template=Template}) -> 
+                {obj, [{domainname, Dname},{email,Email},{type,Type},{receivetype,Receivetype},{groupname,GroupName},{template,Template}]}
+            end, Result),
+            {200, [], list_to_binary(rfc4627:encode(Json))};
         ["rest", "api", "v1"|_] -> {200, [], <<"not match">>};
         _ -> {404, [], <<>>}
     end;
+
 
 
 request(post, Paths, _DocRoot, _Req) ->
@@ -55,7 +60,6 @@ request(head, Paths, _DocRoot, _Req) ->
         ["rest", "api", "v1"|_] -> {200, [], <<"rest full api">>};
         _ -> {404, [], <<>>}
     end.
-
 
 
 generate_cors_headers() ->

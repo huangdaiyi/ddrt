@@ -3,7 +3,14 @@
 %%% User
 %%% ===================================================================
 
-{get_users, <<"SELECT * FROM users;">>},
+%if id is null,then will checkout all info about user
+{get_user, <<"SELECT u.email,u.`type`,gu.receive_type,g.`name` AS gname,g.template,d.`name` AS dname FROM users AS u
+INNER JOIN groups_users AS gu ON u.id=gu.user_id INNER JOIN groups AS g ON gu.group_id=g.id INNER JOIN
+domains AS d ON gu.domain_id=d.id WHERE u.id = ?">>},
+
+{get_users, <<"SELECT u.email,u.`type`,gu.receive_type,g.`name` AS gname,g.template,d.`name` AS dname FROM users AS u
+INNER JOIN groups_users AS gu ON u.id=gu.user_id INNER JOIN groups AS g ON gu.group_id=g.id INNER JOIN
+domains AS d ON gu.domain_id=d.id ">>},
 
 {add_group, <<"INSERT INTO groups(group_name, template) VALUE(?,?);">>},
 

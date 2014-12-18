@@ -40,8 +40,8 @@ init_prepare() ->
 get_record_info(groups) ->
     record_info(fields, groups);
 
-get_record_info(usercontainer) ->
-    record_info(fields, usercontainer);
+get_record_info(userentity) ->
+    record_info(fields, userentity);
 
 get_record_info(users) ->
     record_info(fields, users);
