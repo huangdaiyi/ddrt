@@ -33,7 +33,6 @@ init_db() ->
     ok.
 
 init_prepare() ->
-    io:format("ok"),
     [ok = emysql:prepare(K,V) || {K,V} <- ?DB_SCRIPT],
     ok.
 
@@ -102,3 +101,7 @@ select(Pre,Record,Params) when is_atom(Pre),is_atom(Record),is_list(Params) ->
         {result_packet,_,_,[],<<>>} -> [];
         Result -> emysql:as_record(Result, Record, get_record_info(Record))
     end.
+
+datetime_format(Date) ->
+    {Date={Year, Month, Day}, _} = Date,
+    string:join([integer_to_list(Year),integer_to_list(Month),integer_to_list(Day)],"-"). 

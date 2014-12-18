@@ -3,7 +3,7 @@
 %%% User
 %%% ===================================================================
 
-{get_users, <<"SELECT * FROM users;">>}
+{get_users, <<"SELECT * FROM users;">>},
 
 {add_group, <<"INSERT INTO groups(group_name, template) VALUE(?,?);">>},
 

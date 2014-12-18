@@ -2,14 +2,11 @@
 -compile([debug_info]).
 -author("benjamin.c.yan@newegg.com").
 -export([request/4,responsed/2]).
+-include ("include/ddrt.hrl").
 
-<<<<<<< HEAD
 
 % get the users
-request(get, Paths, DocRoot, _Req) ->
-=======
 request(get, Paths, _DocRoot, _Req) ->
->>>>>>> 9b2b50110ce80460ab524562031e188dc031ebb2
     SafePaths = [string:to_lower(P) || P <- Paths],
     case SafePaths of
         ["rest", "api", "v1", "users"|_] ->
@@ -23,24 +20,15 @@ request(get, Paths, _DocRoot, _Req) ->
         ["rest", "api", "v1"|_] -> {200, [], <<"not match">>};
         _ -> {404, [], <<>>}
     end;
-<<<<<<< HEAD
-    
-request(post, Paths, DocRoot, _Req) ->
-=======
+
 
 request(post, Paths, _DocRoot, _Req) ->
->>>>>>> 9b2b50110ce80460ab524562031e188dc031ebb2
     SafePaths = [string:to_lower(P) || P <- Paths],
     case SafePaths of
         ["rest", "api", "v1"|_] -> {200, [], <<"rest full api">>};
         _ -> {404, [], <<>>}
     end;
-<<<<<<< HEAD
-request(put, Paths, DocRoot, _Req) ->
-    SafePaths = [string:to_lower(P) || P <- Paths],
-    case SafePaths of
-        ["rest", "api", "v1"|_] -> {200, [], <<"rest full api">>};
-=======
+
 
 request(put, Paths, _DocRoot, Req) ->
     io:format("~nput request...~n"),
@@ -58,7 +46,7 @@ request(put, Paths, _DocRoot, Req) ->
              end;
             
         ["api", "v1"|_] -> {200, [], <<"rest full api">>};
->>>>>>> 9b2b50110ce80460ab524562031e188dc031ebb2
+
         _ -> {404, [], <<>>}
     end;
 request(head, Paths, _DocRoot, _Req) ->
