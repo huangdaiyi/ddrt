@@ -18,6 +18,7 @@
 init([]) ->
 	% {ok, null}.
 	Groups = ddrt_db:get_groups(),
+	io:format("~n~p~n", [Groups]),
 	{ok, Groups, 0}.
 
 terminate(_Reason, _State) ->
@@ -159,7 +160,7 @@ getNowTime() ->
 
 -spec loop(Timespan :: integer()) -> ok.
 loop(Timespan) ->
-	io:format("Enter looper ... ~n"),
+	%io:format("Enter looper ... ~n"),
 	{_,{H,M,_}} = calendar:local_time(),
 	if
 		(H == 16) andalso ((M >= 30) andalso (M < 35)) -> send_remind(), timer:sleep(Timespan), loop(Timespan);

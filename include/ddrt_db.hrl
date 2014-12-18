@@ -2,7 +2,7 @@
 %%% ===================================================================
 %%% User
 %%% ===================================================================
-{add_group, <<"INSERT INTO groups(group_name) VALUE(?);">>},
+{add_group, <<"INSERT INTO groups(group_name, template) VALUE(?,?);">>},
 
 {add_report, <<"INSERT INTO reports(user_id, content, `date`) VALUES (?,?,?)">>},
 
@@ -13,9 +13,9 @@
 				INNER JOIN ddrt.domains AS d ON gu.domain_id = d.id 
 				WHERE r.`date` BETWEEN DATE_SUB(?,INTERVAL ? DAY) AND ? AND g.id = ? AND u.type = 'R'">>},
 
- get_not_report_emails, <<"SELECT u.email FROM ddrt.users AS u WHERE u.`type` = 'r'
+{get_not_report_emails, <<"SELECT u.email FROM ddrt.users AS u WHERE u.`type` = 'r'
  						 AND NOT EXISTS(SELECT r.user_id FROM ddrt.reports AS r 
- 						 WHERE r.`date` BETWEEN DATE_SUB(?,INTERVAL ? DAY) AND ? AND u.id = r.user_id)">>,
+ 						 WHERE r.`date` BETWEEN DATE_SUB(?,INTERVAL ? DAY) AND ? AND u.id = r.user_id)">>},
 
- get_groups, <<"SELECT id, `name` FROM groups">>
+{get_groups, <<"SELECT id, `name` AS group_name FROM ddrt.groups">>}
 ]).
