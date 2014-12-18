@@ -1,4 +1,5 @@
 -module(ddrt_db).
+-compile([debug_info]).
 -author("benjamin.c.yan@newegg.com").
 -include ("include/ddrt.hrl").
 -include ("include/ddrt_db.hrl").
