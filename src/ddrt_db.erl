@@ -68,7 +68,7 @@ update(Pre,Params) when is_atom(Pre),is_list(Params) ->
 
 
 add_report(Params) ->
-    update(add_report,Params).
+    update(add_report, Params).
 
 %-spec get_report(Date :: datetime(), DayNum :: integer(), GroupID:: integer()) -> any().
 get_report(Date, DayNum, GroupID) ->

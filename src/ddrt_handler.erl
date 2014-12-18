@@ -24,10 +24,10 @@ request(put, Paths, _DocRoot, Req) ->
     SafePaths = [string:to_lower(P) || P <- Paths],
     case SafePaths of
         ["api", _V, "report"] ->
-            Data = Req:parse_post(),
+            {obj, Data} = Req:json_body(),
             GroupName = proplists:get_value("name", Data, ""),
             Template = proplists:get_value("template", Data, ""),
-            case ddrt_db:add_report(add_report, [GroupName, Template]) of
+            case ddrt_db:add_report([GroupName, Template]) of
                  ok ->
                     responsed(Req, 200, [], <<"Success">>);
                 _ ->

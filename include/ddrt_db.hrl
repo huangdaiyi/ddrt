@@ -2,9 +2,9 @@
 %%% ===================================================================
 %%% User
 %%% ===================================================================
-{add_group, <<"INSERT INTO groups(group_name, template) VALUE(?,?);">>},
+{add_group, <<"INSERT INTO ddrt.groups(`name`, template) VALUES (?,?);">>},
 
-{add_report, <<"INSERT INTO reports(user_id, content, `date`) VALUES (?,?,?)">>},
+{add_report, <<"INSERT INTO ddrt.reports(user_id, content, `date`) VALUES (?,?,?)">>},
 
 {get_report, <<"SELECT u.email, r.content, r.`date`, g.`name` AS group_name, g.template, gu.receive_type, d.`name` AS domain_name 
 				FROM ddrt.reports AS r INNER JOIN ddrt.users AS u ON u.id = r.user_id 

@@ -18,7 +18,7 @@
 init([]) ->
 	% {ok, null}.
 	Groups = ddrt_db:get_groups(),
-	io:format("~n~p~n", [Groups]),
+	%io:format("~n~p~n", [Groups]),
 	{ok, Groups, 0}.
 
 terminate(_Reason, _State) ->
