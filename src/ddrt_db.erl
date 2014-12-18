@@ -38,8 +38,8 @@ init_prepare() ->
 
 get_record_info(groups) ->
     record_info(fields, groups);
-get_record_info(users) ->
-    record_info(fields, users).
+get_record_info(usercontainer) ->
+    record_info(fields, usercontainer).
 
 update(Pre,Params) when is_atom(Pre),is_list(Params) ->
     case emysql:execute(mysql_pool,Pre,Params) of

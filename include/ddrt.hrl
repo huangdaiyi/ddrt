@@ -1,3 +1,3 @@
--record (users, {id}).
--record (groups, {id, group_name}).
+-record (usercontainer,{[id,email,type]}).
+-record (groups,{id, group_name}).
 
