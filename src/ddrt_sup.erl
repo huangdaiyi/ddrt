@@ -8,4 +8,7 @@ start_link() ->
     supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 
 init([]) ->
-    {ok, {{one_for_one, 3600, 60}, []}}.
+
+	Server = {ddrt_timer, {ddrt_timer, start_link, []}, permanent, 2000, worker, [ddrt_timer]},
+	Processes = [Server],
+    {ok, {{one_for_one, 3600, 60}, Processes}}.

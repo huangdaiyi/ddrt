@@ -4,7 +4,8 @@
 -include ("include/ddrt.hrl").
 -include ("include/ddrt_db.hrl").
 -export ([start/0, stop/0]).
--export ([update/2, select/3]).
+-export ([update/2, select/3, add_report/1, get_not_report_emails/2, get_report/3, get_groups/0]).
+
 
 %%
 % public method
@@ -39,8 +40,16 @@ init_prepare() ->
 
 get_record_info(groups) ->
     record_info(fields, groups);
+
 get_record_info(usercontainer) ->
-    record_info(fields, usercontainer).
+    record_info(fields, usercontainer);
+
+get_record_info(users) ->
+    record_info(fields, users);
+get_record_info(email_list) ->
+    record_info(fields, email_list);
+get_record_info(report_mode) ->
+    record_info(fields, report_mode).
 
 update(Pre,Params) when is_atom(Pre),is_list(Params) ->
     case emysql:execute(mysql_pool,Pre,Params) of
@@ -62,6 +71,27 @@ update(Pre,Params) when is_atom(Pre),is_list(Params) ->
             error_logger:error_report(["execute update error",{pre,Pre},{params,Params},W]),
             faild
     end.
+
+
+add_report(Params) ->
+    update(add_report,Params).
+
+%-spec get_report(Date :: datetime(), DayNum :: integer(), GroupID:: integer()) -> any().
+get_report(Date, DayNum, GroupID) ->
+    DateStr = datetime_format(Date),
+    Params = [DateStr, DateStr, DayNum, GroupID],
+    Result = select(get_report, report_mode, Params),
+    Result.
+
+get_groups() ->
+    select(get_groups, groups, []).
+    
+%-spec get_not_report_emails(Date :: datetime(), DayNum :: integer()) -> any().
+get_not_report_emails(Date, DayNum) ->
+    DateStr = datetime_format(Date),
+    Params = [DateStr, DateStr, DayNum],
+    Reuslt = select(get_not_report_emails, email_list, Params),
+    Reuslt.
 
 select(Pre,Record,Params) when is_atom(Pre),is_atom(Record),is_list(Params) ->
     case emysql:execute(mysql_pool,Pre,Params) of
