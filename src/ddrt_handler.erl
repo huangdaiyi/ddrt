@@ -18,9 +18,13 @@ request(post, Paths, DocRoot, _Req) ->
         ["rest", "api", "v1"|_] -> {200, [], <<"rest full api">>};
         _ -> {404, [], <<>>}
     end;
+
 request(put, Paths, DocRoot, _Req) ->
     SafePaths = [string:to_lower(P) || P <- Paths],
     case SafePaths of
+        ["rest", "api", _V, "report"] ->
+            ddrt_db:update(add_report, []);
+            
         ["rest", "api", "v1"|_] -> {200, [], <<"rest full api">>};
         _ -> {404, [], <<>>}
     end;

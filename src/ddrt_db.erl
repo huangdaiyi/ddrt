@@ -3,7 +3,7 @@
 -include ("include/ddrt.hrl").
 -include ("include/ddrt_db.hrl").
 -export ([start/0, stop/0]).
--export ([update/2, select/3]).
+-export ([update/2, select/3, get_not_report_emails/2, get_report/3, get_groups/0]).
 
 %%
 % public method
@@ -62,6 +62,27 @@ update(Pre,Params) when is_atom(Pre),is_list(Params) ->
             faild
     end.
 
+
+%-spec get_report(Date :: datetime(), DayNum :: integer(), GroupID:: integer()) -> any().
+get_report(Date, DayNum, GroupID) ->
+    DateStr = datetime_format(Date),
+    Params = [DateStr, DateStr, DayNum, GroupID],
+    Result = select(get_report, #report_mode{}, Params),
+    Result.
+
+get_groups() ->
+    select(get_groups, #groups{}, []).
+    
+
+
+%-spec get_not_report_emails(Date :: datetime(), DayNum :: integer()) -> any().
+get_not_report_emails(Date, DayNum) ->
+    DateStr = datetime_format(Date),
+    Params = [DateStr, DateStr, DayNum],
+    Reuslt = select(get_not_report_emails, #email_list{}, Params),
+    Reuslt.
+
+
 select(Pre,Record,Params) when is_atom(Pre),is_atom(Record),is_list(Params) ->
     case emysql:execute(mysql_pool,Pre,Params) of
         [Result,_] -> emysql:as_record(Result, Record, get_record_info(Record));
@@ -71,3 +92,9 @@ select(Pre,Record,Params) when is_atom(Pre),is_atom(Record),is_list(Params) ->
         {result_packet,_,_,[],<<>>} -> [];
         Result -> emysql:as_record(Result, Record, get_record_info(Record))
     end.
+
+
+datetime_format(Date) ->
+    {Date={Year, Month, Day}, _} = Date,
+    string:join([integer_to_list(Year),integer_to_list(Month),integer_to_list(Day)],"-").
+
