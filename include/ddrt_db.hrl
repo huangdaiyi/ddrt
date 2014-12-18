@@ -2,7 +2,11 @@
 %%% ===================================================================
 %%% User
 %%% ===================================================================
+
 {add_group, <<"INSERT INTO ddrt.groups(`name`, template) VALUES (?,?);">>},
+
+{get_users, <<"SELECT * FROM users;">>},
+
 
 {add_report, <<"INSERT INTO ddrt.reports(user_id, content, `date`) VALUES (?,?,?)">>},
 
@@ -18,4 +22,5 @@
  						 WHERE r.`date` BETWEEN DATE_SUB(?,INTERVAL ? DAY) AND ? AND u.id = r.user_id)">>},
 
 {get_groups, <<"SELECT id, `name` AS group_name FROM ddrt.groups">>}
+
 ]).
