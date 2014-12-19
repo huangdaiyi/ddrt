@@ -101,4 +101,4 @@ select(Pre,Record,Params) when is_atom(Pre),is_atom(Record),is_list(Params) ->
         Result -> emysql:as_record(Result, Record, get_record_info(Record))
     end.
 
-     
+
