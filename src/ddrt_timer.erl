@@ -67,7 +67,7 @@ send(RemindTime, SendTime, TimeSpan) ->
 	Minutes	= H*60 + M,
 	if
 		Minutes	>= RemindTime andalso Minutes < SendTime -> send_remind();
-		Minutes	>= SendTime	andalso Minutes < (SendTime + Timespan) -> send_mail();
+		Minutes	>= SendTime	andalso Minutes < (SendTime + TimeSpan) -> send_mail();
 		true -> ok
 	end.
 
