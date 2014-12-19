@@ -1,6 +1,5 @@
 -module (ddrt_utils).
 -export ([build_report_body/1, datetime_to_string/1, datetime_format/1]).
-
 -include ("include/ddrt.hrl").
 
 
@@ -27,3 +26,8 @@ datetime_format(Date) ->
             {{Year, Month, Day}, _} = Date,
             string:join([integer_to_list(Year),integer_to_list(Month),integer_to_list(Day)],"-")
     end.
+
+user_format(Result)->
+    lists:map(fun(#userentity{dname = Dname, email = Email,type=Type,receive_type=Receivetype,gname=GroupName,template=Template}) -> 
+                {obj, [{email,Email},{groupname,GroupName},{domainname, Dname},{type,Type},{receivetype,Receivetype},{template,Template}]}
+            end, Result).

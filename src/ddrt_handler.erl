@@ -1,5 +1,4 @@
 -module (ddrt_handler).
--compile([debug_info]).
 -author("benjamin.c.yan@newegg.com").
 -export([request/4,responsed/2]).
 -include ("include/ddrt.hrl").
@@ -11,9 +10,8 @@ request(get, Paths, _DocRoot, _Req) ->
     case SafePaths of
         ["api", "v1", "users"|_] ->%get all user
             Result = ddrt_db:select(get_users,userentity,[]),
-            Json = lists:map(fun(#userentity{dname = Dname, email = Email,type=Type,receive_type=Receivetype,gname=GroupName,template=Template}) -> 
-                {obj, [{email,Email},{groupname,GroupName},{domainname, Dname},{type,Type},{receivetype,Receivetype},{template,Template}]}
-            end, Result),
+            ddrt_utils:user_format(Result),
+            Json = ddrt_utils:user_format(Result),
             {200, [], list_to_binary(rfc4627:encode(Json))};
         ["api", "v1", "user",UserID] -> % get a user
             Result = ddrt_db:select(get_user,userentity,[UserID]),
