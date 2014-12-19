@@ -9,17 +9,17 @@
 
 -include ("include/ddrt.hrl").
 -define (REPORTDAYS, 7).
--define (TIMESPAN, 1000*60*5).
 
 %%%================================================
 %%% gen_server callbacks
 %%%================================================
 
 init([]) ->
-	% {ok, null}.
-	Groups = ddrt_db:get_groups(),
-	%io:format("~n~p~n", [Groups]),
-	{ok, Groups, 0}.
+	{ok, T} = neg_hydra:get_env(ddrt_time),
+	RemindTime = to_minutes(proplists:get_value(remind, T)),
+	SendTime = to_minutes(proplists:get_value(send, T)),
+	Timespan = proplists:get_value(span, T)*3600,
+	{ok, {RemindTime, SendTime, Timespan}, 0}.
 
 terminate(_Reason, _State) ->
 	ok.
@@ -28,24 +28,19 @@ handle_cast(stop, State) ->
 	{stop, normal, State}.
 
 
-handle_call(groups, _From, State) ->
-	if
-		length(State) > 0 ->
-			{reply, State, State};
-
-		true ->
-			Groups = ddrt_db:get_groups(),
-			{reply, Groups, Groups}
-	end;
 handle_call(_Message, _From, State) ->
-	{reply, ok, State}.
+	{_, _, Sp} = State,
+	{reply, ok, State, Sp}.
 
 handle_info(timeout, State) ->
-	loop(?TIMESPAN),
-	{noreply, State}.
+	io:format("timeout calling ...~n"),
+	{Re, Se, Sp} = State,
+	send(Re, Se, Sp/3600),
+	{noreply, State, Sp}.
 
 code_change(_OldVsn, State, _Extra) ->
-	{ok, State}.
+	{_, _, Sp} = State,
+	{ok, State, Sp}.
 
 %%%================================================
 %%% API
@@ -62,16 +57,36 @@ stop() ->
 %%% Internal functions
 %%%==============================================
 
+to_minutes(TimeStr) ->
+	[H, M] = [ list_to_integer(X) || X <- string:tokens(TimeStr,":")],
+	H*60 + M.
+
+
+send(RemindTime, SendTime, TimeSpan) ->
+	{_, {H, M, _}} = calendar:local_time(),
+	Minutes	= H*60 + M,
+	if
+		Minutes	>= RemindTime andalso Minutes < SendTime -> send_remind();
+		Minutes	>= SendTime	andalso Minutes < (SendTime + Timespan) -> send_mail();
+		true -> ok
+	end.
+
+
+
+
 get_remind_user()->
 	ddrt_db:get_not_report_emails(calendar:local_time(), ?REPORTDAYS).
 
 
 send_remind() ->
 	Users = get_remind_user(),
+	io:format("~n~p~n", [Users]),
 	send_remind(Users).
 
 send_remind([]) -> ok;
-send_remind([User|RestUsers]) ->
+send_remind([#email_list{email=Email}|RestUsers]) ->
+	
+	User = binary_to_list(Email),
 	Body = "<!DOCTYPE HTML>
 <html>
 <head>
@@ -79,7 +94,7 @@ send_remind([User|RestUsers]) ->
 </head>
 <body style=\"color:#0099CC\">
 	<p>
-       Dear " ++ string:substr(User, 1, string:str(User,".")-1) ++",<br/><br/>
+       Dear " ++ string:substr(User, 1, string:str(User,"@")-1) ++",<br/><br/>
        <Strong>Please <a href=\"http://10.16.76.245:8080\">submit</a> daily reports in a timely manner(Before 18:00).</strong>
     </p>
     <p style=\"font-style: italic;\">
@@ -88,7 +103,7 @@ send_remind([User|RestUsers]) ->
 	</p
 </body>
 </html>",
-	Subject = "(Info)Submit Daily Report Remind",
+	Subject = "(Info)Submit Daily Report Remind---test",
 	Cc = "",
 	Mail = #mail{to=User, cc=Cc, subject=Subject, body=Body},
 	spawn(ddrt_mail, send_mail, [Mail]),
@@ -157,16 +172,3 @@ getNowTime() ->
 	{{Y,M,D},_} = calendar:local_time(),
 	string:join([integer_to_list(Y),integer_to_list(M),integer_to_list(D)],"-").
 
-
--spec loop(Timespan :: integer()) -> ok.
-loop(Timespan) ->
-	%io:format("Enter looper ... ~n"),
-	{_,{H,M,_}} = calendar:local_time(),
-	if
-		(H == 16) andalso ((M >= 30) andalso (M < 35)) -> send_remind(), timer:sleep(Timespan), loop(Timespan);
-        (H == 17) andalso (M < 5) -> send_remind(), timer:sleep(Timespan), loop(Timespan);
-        (H == 17) andalso ((M >= 25) andalso (M < 30)) -> send_remind(), timer:sleep(Timespan), loop(Timespan);
-        (H == 18) andalso (M < 5) -> send_mail(), timer:sleep(Timespan), loop(Timespan);
-        (H == 0) andalso (M < 5)-> timer:sleep(Timespan), loop(Timespan);
-        true -> timer:sleep(Timespan), loop(Timespan)
-    end.

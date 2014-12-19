@@ -2,10 +2,10 @@
 %gdev 07a1227ddd5a2e7a6465b86ec1691f434b7f9bc92e94d33020942e68718206e6
 %prd  047e71bf9b8da2629bbd25b43532e9232765162e4594ac645a623202bfd2bfdd
 {application, ddrt,
- [{description, "Tomato time method"},
+ [{description, "ddrt"},
   {vsn, "0.1.0"},
   {modules,[]},
-  {registered,[]},
-  {mod, {[]}},
+  {registered,[ddrt,ddrt_sup]},
+  {mod,{ddrt_app,[]}},
   {env,[]},
   {applications, [kernel, stdlib, sasl]}]}.
