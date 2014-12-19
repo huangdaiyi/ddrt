@@ -14,8 +14,6 @@ domains AS d ON gu.domain_id=d.id ">>},
 
 {add_user, <<"insert into users(email,type) values(?,?);">>},
 
-{get_users, <<"SELECT * FROM users;">>},
-
 {add_group, <<"INSERT INTO ddrt.groups(`name`, template) VALUES (?,?);">>},
 
 {add_report, <<"INSERT INTO ddrt.reports(user_id, content, `date`) VALUES (?,?,?)">>},
