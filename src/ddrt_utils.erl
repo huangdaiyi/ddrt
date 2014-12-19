@@ -17,13 +17,11 @@ datetime_to_string(DateTime) ->
 		++ " " 
 		++ string:join([integer_to_list(H), integer_to_list(M2), integer_to_list(S)], ":").
 
+
+datetime_format(Date) when is_list(Date) ->
+    list_to_binary(Date);
+datetime_format(Date) when is_binary(Date) ->
+    Date;
 datetime_format(Date) ->
-    if 
-        is_list(Date) ->
-           list_to_binary(Date);
-        is_binary(Date) ->
-            Date;
-        true ->
-            {{Year, Month, Day}, _} = Date,
-            string:join([integer_to_list(Year),integer_to_list(Month),integer_to_list(Day)],"-")
-    end.
+    {{Year, Month, Day}, _} = Date,
+    string:join([integer_to_list(Year),integer_to_list(Month),integer_to_list(Day)],"-").

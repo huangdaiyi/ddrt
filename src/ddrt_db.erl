@@ -1,5 +1,4 @@
 -module(ddrt_db).
--compile([debug_info]).
 -author("benjamin.c.yan@newegg.com").
 -include ("include/ddrt.hrl").
 -include ("include/ddrt_db.hrl").
@@ -79,7 +78,6 @@ add_group(Params) ->
     update(add_group, Params).
 
     
-
 %-spec get_report(Date :: datetime(), DayNum :: integer(), GroupID:: integer()) -> any().
 get_report(Date, DayNum, GroupID) ->
     DateStr = ddrt_utils:datetime_format(Date),
@@ -92,7 +90,6 @@ get_groups() ->
     
 %-spec get_not_report_emails(Date :: datetime(), DayNum :: integer()) -> any().
 get_not_report_emails(Date, DayNum) ->
-  
     DateStr = ddrt_utils:datetime_format(Date),
     Params = [DateStr, DateStr, DayNum],
     Reuslt = select(get_not_report_emails, email_list, Params),

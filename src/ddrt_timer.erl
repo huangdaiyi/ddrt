@@ -13,8 +13,8 @@
 %%%================================================
 %%% gen_server callbacks
 %%%================================================
-
 init([]) ->
+	inets:start(),
 	{ok, T} = neg_hydra:get_env(ddrt_time),
 	RemindTime = to_minutes(proplists:get_value(remind, T)),
 	SendTime = to_minutes(proplists:get_value(send, T)),
@@ -33,7 +33,6 @@ handle_call(_Message, _From, State) ->
 	{reply, ok, State, Sp}.
 
 handle_info(timeout, State) ->
-	io:format("timeout calling ...~n"),
 	{Re, Se, Sp} = State,
 	send(Re, Se, Sp/3600),
 	{noreply, State, Sp}.
@@ -45,7 +44,6 @@ code_change(_OldVsn, State, _Extra) ->
 %%%================================================
 %%% API
 %%%================================================
-
 start_link() ->
 	gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
@@ -70,8 +68,6 @@ send(RemindTime, SendTime, TimeSpan) ->
 		Minutes	>= SendTime	andalso Minutes < (SendTime + TimeSpan) -> send_mail();
 		true -> ok
 	end.
-
-
 
 
 get_remind_user()->
@@ -110,11 +106,11 @@ send_remind([#email_list{email=Email}|RestUsers]) ->
 	send_remind(RestUsers).
 
 send_mail() ->
-	{ok, Groups} = gen_server:call(?MODULE,groups),
+	{ok, Groups} = ddrt_db:get_groups(),
 	send_mail(Groups).
 
 send_mail([]) -> ok;
-send_mail([#groups{id=ID, group_name=_Name} | RestGroups]) ->
+send_mail([#groups{id=ID, group_name=Name} | RestGroups]) ->
 	%email, content, date, group_name, template, receive_type, domain_name
 	Now = calendar:local_time(),
 	Reports = ddrt_db:get_report(Now, ?REPORTDAYS, ID),
@@ -137,18 +133,23 @@ send_mail([#groups{id=ID, group_name=_Name} | RestGroups]) ->
 	   td.center { text-align: center; }
 	   td.large { width: 40%; }
        td.small { width: 20%; }
+       td.left {text-align:left;}
 	</style>
 </head>
 <body>
-    <h1>DFIS Daily Report</h1>
+    <h1>"++ Name ++" Daily Report</h1>
     <div class=\"data\">
         <table style=\"width: 100%\">
             <thead>
                 <tr>
                     <th>Team Member</th>
                     <th>Today</th>
-                    <th>Issue</th>
-                    <th>Next</th>
+                    <th>D2</th>
+                    <th>D3</th>
+                    <th>D4</th>
+                    <th>D5</th>
+                    <th>D6</th>
+                    <th>D7</th>
                 </tr>
             </thead>
             <tbody>" ++ string:join(getBody(Reports),"") ++ "</tbody></table></div></body></html>",
@@ -157,7 +158,20 @@ send_mail([#groups{id=ID, group_name=_Name} | RestGroups]) ->
 	send_mail(RestGroups).
 
 
+% parse_reports(Reports) ->
+% 	list:foldl(
+% 		fun(R, Acct) -> 
+% 			case R of
+% 				#report_mode{email=Email, content=Content, date=Date, domain_name=DomainName} ->
+% 					dict:append(DomainName, [{email,Email},{content, Content}, {date, Date})
+% 			end
+			
+% 		end,
+% 	dict:new(), Reports).
+
+
 getBody(Reports) ->
+	%Domian = "<tr><td class=\"left"></td></tr>"
 	getBody(Reports, "").
 
 getBody([],Body) -> Body;
