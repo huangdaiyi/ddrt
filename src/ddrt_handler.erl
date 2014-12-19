@@ -6,22 +6,18 @@
 %%%================================================
 %%% request callback
 %%%================================================
-request(get, Paths, _DocRoot, _Req) ->
-    do_get([string:to_lower(P) || P <- Paths]);
+request(get, Paths, DocRoot, Req) ->
+    do_get([string:to_lower(P) || P <- Paths], DocRoot, Req);
 
+request(post, Paths, DocRoot, Req) ->
+    do_post([string:to_lower(P) || P <- Paths], DocRoot, Req);
 
-request(post, Paths, _DocRoot, _Req) ->
-    do_post([string:to_lower(P) || P <- Paths]);
-
-
-request(put, Paths, _DocRoot, Req) ->
-   do_put([string:to_lower(P) || P <- Paths], Req);
+request(put, Paths, DocRoot, Req) ->
+    do_put([string:to_lower(P) || P <- Paths], DocRoot, Req);
  
-
-request(head, Paths, _DocRoot, _Req) ->
-    do_head([string:to_lower(P) || P <- Paths]).
+request(head, Paths, DocRoot, Req) ->
+    do_head([string:to_lower(P) || P <- Paths], DocRoot, Req).
     
-
 responsed(_Code, _Req) ->
     ok.
 
@@ -29,23 +25,26 @@ responsed(_Code, _Req) ->
 %%%================================================
 %%% get request
 %%%================================================
-do_get(["api", "v1", "users"|_]) ->
+do_get(["api", "v1", "users"|_], _DocRoot, _Req) ->
     Result = ddrt_db:select(get_users,userentity,[]),
     Json = lists:map(fun(#userentity{dname = Dname, email = Email,type=Type,receive_type=Receivetype,gname=GroupName,template=Template}) -> 
     {obj, [{email,Email},{groupname,GroupName},{domainname, Dname},{type,Type},{receivetype,Receivetype},{template,Template}]}
     end, Result),
     {200, [], list_to_binary(rfc4627:encode(Json))};
-do_get(["api", "v1", "user", UserID]) ->
+
+do_get(["api", "v1", "user", UserID], _DocRoot, _Req) ->
     Result = ddrt_db:select(get_user,userentity,[UserID]),
     Json = lists:map(fun(#userentity{dname = Dname, email = Email,type=Type,receive_type=Receivetype,gname=GroupName,template=Template}) -> 
          {obj, [{email,Email},{groupname,GroupName},{domainname, Dname},{type,Type},{receivetype,Receivetype},{template,Template}]}
     end, Result),
     {200, [], list_to_binary(rfc4627:encode(Json))};
-do_get(["api", _V, "reports", GroupID, Date]) ->
+
+do_get(["api", _V, "reports", GroupID, Date], _DocRoot, _Req) ->
     Result = ddrt_db:get_report(list_to_binary(Date), <<"7">>, list_to_binary(GroupID)),
     Body = ddrt_utils:build_report_body(Result),
     {200, [{"Content-Type","JSON"}], rfc4627:encode(Body)};
-do_get(_Any) ->
+
+do_get(_Any, , _DocRoot, _Req) ->
     {404, [], <<>>}.
         
 
@@ -59,7 +58,7 @@ do_post(_Any) ->
 %%%================================================
 %%% put request
 %%%================================================
-do_put(["api", _V, "group"], Req) ->
+do_put(["api", _V, "group"], _DocRoot, Req) ->
     {obj, Data} = Req:json_body(),
     GroupName = proplists:get_value("name", Data, ""),
     Template = proplists:get_value("template", Data, ""),
@@ -69,7 +68,8 @@ do_put(["api", _V, "group"], Req) ->
         _ ->
             {500, [], <<"Failed">>}
     end;
-do_put(["api", _V, "report"], Req) ->
+
+do_put(["api", _V, "report"], _DocRoot, Req) ->
     {obj, Data} = Req:json_body(),
     UserID = proplists:get_value("userid", Data), 
     Content = proplists:get_value("content", Data),
@@ -80,7 +80,8 @@ do_put(["api", _V, "report"], Req) ->
         _ ->
              {500, [], <<"Failed">>}
     end;
-do_put(["api", "v1","adduser"], Req) ->
+
+do_put(["api", "v1","adduser"], _DocRoot, Req) ->
     {obj,Data} = Req:json_body(),
     Email = proplists:get_value("email", Data, ""),
     Type = proplists:get_value("type", Data, ""),
@@ -92,12 +93,13 @@ do_put(["api", "v1","adduser"], Req) ->
         _ ->
             {500, [], <<"Failed">>}
      end;
-do_put(_, _Req) ->
+
+do_put(_, _DocRoot, _Req) ->
     {404, [], <<>>}.
 
 
 %%%================================================
 %%% head request
 %%%================================================
-do_head(_Any) ->
+do_head(_Any, _DocRoot, _Req) ->
     {404, [], <<>>}.
