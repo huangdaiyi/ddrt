@@ -12,6 +12,8 @@ domains AS d ON gu.domain_id=d.id WHERE u.id = ?">>},
 INNER JOIN groups_users AS gu ON u.id=gu.user_id INNER JOIN groups AS g ON gu.group_id=g.id INNER JOIN
 domains AS d ON gu.domain_id=d.id ">>},
 
+{add_user, <<"insert into users(email,type) values(?,?);">>},
+
 {add_group, <<"INSERT INTO groups(group_name, template) VALUE(?,?);">>},
 
 {add_report, <<"INSERT INTO reports(user_id, content, `date`) VALUES (?,?,?)">>},

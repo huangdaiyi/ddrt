@@ -12,13 +12,13 @@ request(get, Paths, _DocRoot,Req) ->
         ["rest", "api", "v1", "users"|_] ->%get all user
             Result = ddrt_db:select(get_users,userentity,[]),
             Json = lists:map(fun(#userentity{dname = Dname, email = Email,type=Type,receive_type=Receivetype,gname=GroupName,template=Template}) -> 
-                {obj, [{domainname, Dname},{email,Email},{type,Type},{receivetype,Receivetype},{groupname,GroupName},{template,Template}]}
+                {obj, [{email,Email},{groupname,GroupName},{domainname, Dname},{type,Type},{receivetype,Receivetype},{template,Template}]}
             end, Result),
             {200, [], list_to_binary(rfc4627:encode(Json))};
         ["rest", "api", "v1", "user",UserID] -> % get a user
             Result = ddrt_db:select(get_user,userentity,[UserID]),
             Json = lists:map(fun(#userentity{dname = Dname, email = Email,type=Type,receive_type=Receivetype,gname=GroupName,template=Template}) -> 
-                {obj, [{domainname, Dname},{email,Email},{type,Type},{receivetype,Receivetype},{groupname,GroupName},{template,Template}]}
+                 {obj, [{email,Email},{groupname,GroupName},{domainname, Dname},{type,Type},{receivetype,Receivetype},{template,Template}]}
             end, Result),
             {200, [], list_to_binary(rfc4627:encode(Json))};
         ["rest", "api", "v1"|_] -> {200, [], <<"not match">>};
@@ -49,7 +49,20 @@ request(put, Paths, _DocRoot, Req) ->
                 _ ->
                     responsed(Req, 500, [], <<"Failed">>)
              end;
-            
+        
+        ["rest", "api", "v1","adduser"] ->
+            {obj,Data} = Req:json_body(),
+            Email = proplists:get_value("email", Data, ""),
+            Type = proplists:get_value("type", Data, ""),
+            EmailStr=binary_to_list(Email),
+            TypeStr=binary_to_list(Type),
+            case ddrt_db:update(add_user, [EmailStr,TypeStr]) of
+                 ok ->
+                    responsed(Req, 200, [], <<"Success">>);
+                _ ->
+                    responsed(Req, 500, [], <<"Failed">>)
+             end;
+
         ["api", "v1"|_] -> {200, [], <<"rest full api">>};
 
         _ -> {404, [], <<>>}
