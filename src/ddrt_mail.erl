@@ -18,7 +18,6 @@ send_mail(#?MAIL{to = To, cc = Cc, subject = Subject,body = Body} = Mail) when i
 
     BodyTemplate = rfc4627:encode({obj, Content}),
 
-    inets:start(),
     Request = {getEmailHost(),[{"accept","application/json"}], "application/json", BodyTemplate},
  	case httpc:request(post, Request, [], []) of
     	{ok,{{_,200,_},_Headers,_Content}} -> true;
