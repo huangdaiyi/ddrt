@@ -21,13 +21,9 @@ stop() ->
 % private methods
 %%
 init_db() ->
-    io:format("ok"),
     crypto:start(),
     application:start(emysql),
-    io:format("ok"),
-    io:format("ok ~p", [neg_hydra:get_env(mysql_pool)]),
     {ok,Config} = neg_hydra:get_env(mysql_pool),
-    io:format("ok"),
     emysql:add_pool(mysql_pool, Config),
     ok.
 
