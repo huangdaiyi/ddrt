@@ -44,14 +44,14 @@ do_get(["api", _V, "reports", GroupID, Date], _DocRoot, _Req) ->
     Body = ddrt_utils:build_report_body(Result),
     {200, [{"Content-Type","JSON"}], rfc4627:encode(Body)};
 
-do_get(_Any, , _DocRoot, _Req) ->
+do_get(_Any, _DocRoot, _Req) ->
     {404, [], <<>>}.
         
 
 %%%================================================
 %%% post request
 %%%================================================
-do_post(_Any) ->
+do_post(_Any, _DocRoot, _Req) ->
     {404, [], <<>>}.
 
 
