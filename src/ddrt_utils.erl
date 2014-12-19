@@ -1,5 +1,5 @@
 -module (ddrt_utils).
--export ([build_report_body/1, datetime_to_string/1, datetime_format/1]).
+-export ([build_report_body/1, datetime_to_string/1, datetime_format/1,user_format/1]).
 -include ("include/ddrt.hrl").
 
 build_report_body(Reports) ->

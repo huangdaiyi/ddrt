@@ -73,10 +73,10 @@ add_group(Params) ->
     update(add_group, Params).
 
 get_dommember(Params)->%Params::[GroupId,DomainName]
-    select(get_dommeber,member,["1","DFIS"]).
+    select(get_dommeber,member,Params).
 
 get_notdommember(Params)->
-    select(get_notdommeber,member,["1"]).%Param::[GroupId]
+    select(get_notdommeber,member,Params).%Param::[GroupId]
 
 %-spec get_report(Date :: datetime(), DayNum :: integer(), GroupID:: integer()) -> any().
 get_report(Date, DayNum, GroupID) ->

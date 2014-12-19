@@ -27,16 +27,12 @@ responsed(_Code, _Req) ->
 %%%================================================
 do_get(["api", "v1", "users"|_], _DocRoot, _Req) ->
     Result = ddrt_db:select(get_users,userentity,[]),
-    Json = lists:map(fun(#userentity{dname = Dname, email = Email,type=Type,receive_type=Receivetype,gname=GroupName,template=Template}) -> 
-    {obj, [{email,Email},{groupname,GroupName},{domainname, Dname},{type,Type},{receivetype,Receivetype},{template,Template}]}
-    end, Result),
+    Json = ddrt_utils:user_format(Result),
     {200, [], list_to_binary(rfc4627:encode(Json))};
 
 do_get(["api", "v1", "user", UserID], _DocRoot, _Req) ->
     Result = ddrt_db:select(get_user,userentity,[UserID]),
-    Json = lists:map(fun(#userentity{dname = Dname, email = Email,type=Type,receive_type=Receivetype,gname=GroupName,template=Template}) -> 
-         {obj, [{email,Email},{groupname,GroupName},{domainname, Dname},{type,Type},{receivetype,Receivetype},{template,Template}]}
-    end, Result),
+    Json = ddrt_utils:user_format(Result),
     {200, [], list_to_binary(rfc4627:encode(Json))};
 
 
