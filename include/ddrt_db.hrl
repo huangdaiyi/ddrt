@@ -3,9 +3,20 @@
 %%% User
 %%% ===================================================================
 
-{add_group, <<"INSERT INTO ddrt.groups(`name`, template) VALUES (?,?);">>},
+%if id is null,then will checkout all info about user
+{get_user, <<"SELECT u.email,u.`type`,gu.receive_type,g.`name` AS gname,g.template,d.`name` AS dname FROM users AS u
+INNER JOIN groups_users AS gu ON u.id=gu.user_id INNER JOIN groups AS g ON gu.group_id=g.id INNER JOIN
+domains AS d ON gu.domain_id=d.id WHERE u.id = ?">>},
+
+{get_users, <<"SELECT u.email,u.`type`,gu.receive_type,g.`name` AS gname,g.template,d.`name` AS dname FROM users AS u
+INNER JOIN groups_users AS gu ON u.id=gu.user_id INNER JOIN groups AS g ON gu.group_id=g.id INNER JOIN
+domains AS d ON gu.domain_id=d.id ">>},
+
+{add_user, <<"insert into users(email,type) values(?,?);">>},
 
 {get_users, <<"SELECT * FROM users;">>},
+
+{add_group, <<"INSERT INTO ddrt.groups(`name`, template) VALUES (?,?);">>},
 
 {add_report, <<"INSERT INTO ddrt.reports(user_id, content, `date`) VALUES (?,?,?)">>},
 

@@ -5,18 +5,23 @@
 -include ("include/ddrt.hrl").
 
 
-% get the users
+% get all users or a special user
 request(get, Paths, _DocRoot, _Req) ->
     SafePaths = [string:to_lower(P) || P <- Paths],
     case SafePaths of
-        ["rest", "api", "v1", "users"|_] ->
-            % io:format("~p~n", ddrt_db:select(get_users,usercontainer, [])),
-            % emysql:execute(mysql_pool,get_users,[]),
-            Result = emysql:execute(mysql_pool,get_users,[]),
-            io:format("~p~n", [Result]),
-            User = emysql:as_record(Result, usercontainer, record_info(fields, usercontainer)),
-            io:format("~p~n", [User]),
-            {200, [], <<"ok,users list">>};
+        ["api", "v1", "users"|_] ->%get all user
+            Result = ddrt_db:select(get_users,userentity,[]),
+            Json = lists:map(fun(#userentity{dname = Dname, email = Email,type=Type,receive_type=Receivetype,gname=GroupName,template=Template}) -> 
+                {obj, [{email,Email},{groupname,GroupName},{domainname, Dname},{type,Type},{receivetype,Receivetype},{template,Template}]}
+            end, Result),
+            {200, [], list_to_binary(rfc4627:encode(Json))};
+        ["api", "v1", "user",UserID] -> % get a user
+            Result = ddrt_db:select(get_user,userentity,[UserID]),
+            Json = lists:map(fun(#userentity{dname = Dname, email = Email,type=Type,receive_type=Receivetype,gname=GroupName,template=Template}) -> 
+                 {obj, [{email,Email},{groupname,GroupName},{domainname, Dname},{type,Type},{receivetype,Receivetype},{template,Template}]}
+            end, Result),
+            {200, [], list_to_binary(rfc4627:encode(Json))};
+       
         ["api", _V, "reports", GroupID, Date] ->
             case ddrt_db:get_report(list_to_binary(Date), <<"7">>, list_to_binary(GroupID)) of
                 [] ->
@@ -25,15 +30,17 @@ request(get, Paths, _DocRoot, _Req) ->
                     Body = ddrt_utils:build_report_body(Result),
                     {200, [], rfc4627:encode(Body)}
             end;
-        ["rest", "api", "v1"|_] -> {200, [], <<"not match">>};
+
+        ["api", "v1"|_] -> {200, [], <<"not match">>};
         _ -> {404, [], <<>>}
     end;
+
 
 
 request(post, Paths, _DocRoot, _Req) ->
     SafePaths = [string:to_lower(P) || P <- Paths],
     case SafePaths of
-        ["rest", "api", "v1"|_] -> {200, [], <<"rest full api">>};
+        ["api", "v1"|_] -> {200, [], <<"rest full api">>};
         _ -> {404, [], <<>>}
     end;
 
@@ -52,6 +59,7 @@ request(put, Paths, _DocRoot, Req) ->
                 _ ->
                     {500, [], <<"Failed">>}
              end;
+
         ["api", _V, "report"] ->
             {obj, Data} = Req:json_body(),
             UserID = proplists:get_value("userid", Data), 
@@ -63,17 +71,29 @@ request(put, Paths, _DocRoot, Req) ->
                 _ ->
                      {500, [], <<"Failed">>}
             end;
-        ["api", "v1"|_] -> {200, [], <<"rest full api">>};
+        ["api", "v1","adduser"] ->
+            {obj,Data} = Req:json_body(),
+            Email = proplists:get_value("email", Data, ""),
+            Type = proplists:get_value("type", Data, ""),
+            EmailStr=binary_to_list(Email),
+            TypeStr=binary_to_list(Type),
+            case ddrt_db:update(add_user, [EmailStr,TypeStr]) of
+                 ok ->
+                    {200, [], <<"Success">>};
+                _ ->
+                    {500, [], <<"Failed">>}
+             end;
 
-        _ -> {404, [], <<>>}
+        ["api", "v1"|_] ->
+            {404, [], <<>>}
     end;
+
 request(head, Paths, _DocRoot, _Req) ->
     SafePaths = [string:to_lower(P) || P <- Paths],
     case SafePaths of
         ["rest", "api", "v1"|_] -> {200, [], <<"rest full api">>};
         _ -> {404, [], <<>>}
     end.
-
 
 
 responsed(_Code, _Req) ->

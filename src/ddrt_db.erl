@@ -40,8 +40,8 @@ init_prepare() ->
 get_record_info(groups) ->
     record_info(fields, groups);
 
-get_record_info(usercontainer) ->
-    record_info(fields, usercontainer);
+get_record_info(userentity) ->
+    record_info(fields, userentity);
 
 get_record_info(users) ->
     record_info(fields, users);
@@ -77,6 +77,8 @@ add_report(Params) ->
 
 add_group(Params) ->
     update(add_group, Params).
+
+    
 
 %-spec get_report(Date :: datetime(), DayNum :: integer(), GroupID:: integer()) -> any().
 get_report(Date, DayNum, GroupID) ->
