@@ -4,6 +4,7 @@
 -behaviour (supervisor).
 
 start_link() ->
+	% Here did not start a new process 
     ddrt_db:start(),
     supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 
