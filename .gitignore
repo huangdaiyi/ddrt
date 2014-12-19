@@ -2,12 +2,11 @@
 /logs
 /_test
 /.eunit
-/docs
 .DS_Store
 /TEST-*.xml
-/deps
 /ebin
-*.beam
 /_rel
 *.swp
 *.dump
+.rebar
+*.~ml
