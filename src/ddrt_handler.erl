@@ -39,6 +39,7 @@ do_get(["api", "v1", "user", UserID], _DocRoot, _Req) ->
     end, Result),
     {200, [], list_to_binary(rfc4627:encode(Json))};
 
+
 do_get(["api", _V, "reports", GroupID, Date], _DocRoot, _Req) ->
     Result = ddrt_db:get_report(list_to_binary(Date), <<"7">>, list_to_binary(GroupID)),
     Body = ddrt_utils:build_report_body(Result),

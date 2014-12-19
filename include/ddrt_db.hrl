@@ -16,6 +16,12 @@ domains AS d ON gu.domain_id=d.id ">>},
 
 {add_group, <<"INSERT INTO ddrt.groups(`name`, template) VALUES (?,?);">>},
 
+{get_dommeber,<<"select u.id,u.email from users as u inner join groups_users as gu on u.id=gu.user_id  inner join domains as d
+on d.group_id=gu.group_id where gu.group_id=? and d.name = ?">> },
+
+{get_notdommeber,<<"select u.id ,u.email from users as u where u.id not in 
+(select  gu.user_id from  groups_users as gu inner join domains as d on gu.group_id=d.group_id where  d.group_id=?)">> },
+
 {add_report, <<"INSERT INTO ddrt.reports(user_id, content, `date`) VALUES (?,?,?)">>},
 
 {get_report, <<"SELECT u.email, r.content, r.`date`, g.`name` AS group_name, g.template, gu.receive_type, d.`name` AS domain_name 

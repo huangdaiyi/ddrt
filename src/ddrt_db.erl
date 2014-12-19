@@ -3,7 +3,7 @@
 -include ("include/ddrt.hrl").
 -include ("include/ddrt_db.hrl").
 -export ([start/0, stop/0]).
--export ([update/2, select/3, add_report/1, add_group/1, get_not_report_emails/2, get_report/3, get_groups/0]).
+-export ([update/2, select/3, add_report/1, add_group/1, get_not_report_emails/2, get_report/3, get_groups/0,get_dommember/1,get_notdommember/1]).
 
 
 %%
@@ -34,7 +34,6 @@ init_db() ->
 init_prepare() ->
     [ok = emysql:prepare(K,V) || {K,V} <- ?DB_SCRIPT],
     ok.
-
 
 get_record_info(groups) ->
     record_info(fields, groups);
@@ -77,7 +76,12 @@ add_report(Params) ->
 add_group(Params) ->
     update(add_group, Params).
 
-    
+get_dommember(Params)->%Params::[GroupId,DomainName]
+    select(get_dommeber,member,["1","DFIS"]).
+
+get_notdommember(Params)->
+    select(get_notdommeber,member,["1"]).%Param::[GroupId]
+
 %-spec get_report(Date :: datetime(), DayNum :: integer(), GroupID:: integer()) -> any().
 get_report(Date, DayNum, GroupID) ->
     DateStr = ddrt_utils:datetime_format(Date),
