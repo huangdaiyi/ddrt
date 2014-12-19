@@ -2,8 +2,6 @@
 -export ([build_report_body/1, datetime_to_string/1, datetime_format/1]).
 -include ("include/ddrt.hrl").
 
-
-
 build_report_body(Reports) ->
 	[{obj,[{"userid", Email},{"content", Content},{"date", list_to_binary(datetime_to_string(Date))}]}
 	 || #report_mode{email=Email, content=Content, date={datetime, Date}} <- Reports].
