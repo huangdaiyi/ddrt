@@ -116,7 +116,7 @@ send_mail([#groups{id=ID, group_name=Name} | RestGroups]) ->
 	Reports = ddrt_db:get_report(Now, ?REPORTDAYS, ID),
 	To = string:join([ Email || #report_mode{email=Email, receive_type=Type} <- Reports, Type == "To"], ";"),
 	Cc = string:join([ Email || #report_mode{email=Email, receive_type=Type} <- Reports, Type == "Cc"], ";"),
-	Subject = "(Report)DFIS Daily Report" ++ getNowTime(),
+	Subject = "(Report)" ++ Name ++ " Daily Report" ++ getNowTime(),
 	Body = "<!DOCTYPE HTML><html><head>
 <meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">
 <title>DFIS Daily Report</title>
@@ -158,16 +158,22 @@ send_mail([#groups{id=ID, group_name=Name} | RestGroups]) ->
 	send_mail(RestGroups).
 
 
-% parse_reports(Reports) ->
-% 	list:foldl(
-% 		fun(R, Acct) -> 
-% 			case R of
-% 				#report_mode{email=Email, content=Content, date=Date, domain_name=DomainName} ->
-% 					dict:append(DomainName, [{email,Email},{content, Content}, {date, Date})
-% 			end
-			
-% 		end,
-% 	dict:new(), Reports).
+%%% to be continued
+parse_reports(Reports) ->
+	DefaultKey = "no_domain",
+	list:foldl(fun(#report_mode{email=Email, content=Content, date={datetime, Date}, domain_name=DomainName}, Acct) -> 
+					Item = [{email,Email},{content, Content}, {date, Date}],
+					if
+						length(DomainName) =:= 0 -> dict:append(DefaultKey, Item, Acct);
+						true ->
+							case dict:is_key(DomainName, Acct) of
+							  	true ->
+							  		dict:append(DomainName, Item, Acct);
+							  	false -> 
+							  		dict:store(DomainName, [Item], Acct)
+							 end
+					end 
+				end, dict:from_list([{DefaultKey, []}]), Reports).
 
 
 getBody(Reports) ->
