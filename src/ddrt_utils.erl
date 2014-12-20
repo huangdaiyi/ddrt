@@ -20,7 +20,7 @@ datetime_format(Date) when is_binary(Date) ->
     Date;
 datetime_format(Date) ->
     {{Year, Month, Day}, _} = Date,
-    string:join([integer_to_list(Year),integer_to_list(Month),integer_to_list(Day)],"-").
+    list_to_binary(string:join([integer_to_list(Year),integer_to_list(Month),integer_to_list(Day)],"-")).
 
 
 user_format(Result)->

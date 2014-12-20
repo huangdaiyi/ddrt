@@ -22,29 +22,23 @@
     	<script type="text/javascript">
     		$(document).ready(function(){
 
-                var xmlhttp;
-                if (window.XMLHttpRequest){// code for IE7+, Firefox, Chrome, Opera, Safari
-                    xmlhttp=new XMLHttpRequest();
-                }
-                else{// code for IE6, IE5
-                    xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
-                }
-                document.getElementById("email").disabled = true;
-                xmlhttp.onreadystatechange=function(){
-                    if(xmlhttp.readyState==4 && xmlhttp.status==200){
-                        document.getElementById("email").innerHTML=xmlhttp.responseText;
-                        document.getElementById("email").disabled = false;
-                    }
-                }
-                xmlhttp.open("GET", "email_list", true);
-                xmlhttp.send();
+                email_sel$ = $("#email").append('<option value="" disabled="">Select your email</option>'); 
+
+                $.getJSON('api/v1/users',function(data) {
+                    $.each(data, function(k,v) {
+                        if (v.type === "R")
+                            email_sel$.append('<option value="'+ v.id +'">'+ v.email + '</option>');
+                    });
+                    email_sel$.prop("disabled", false);
+                })
 
     			$('#success').hide();
     			$('#form').validate({
         			rules: {
             			email: {
                             // minlength: 3,
-                            email: true,
+                            number:true,
+                            digits:true,
                             required: true
                         },
             			content: {
@@ -75,6 +69,7 @@
                     }
 
     				var options = {
+                        type: 'put',
     					target: '#success-content',
     					success: showResponse,
     					resetForm: true,
@@ -118,11 +113,11 @@
     			<h1 class="panel-title">Welcome to use DDRT</h1>
   			</div>
 			<div class="panel-body">
-				<form role="form" id="form" method="post" enctype="multipart/form-data" action="submit">
+				<form role="form" id="form" method="put" action="api/v1/report">
 					<div class="form-group">
 						<label class="control-label" for="email">Email address</label>
 						<!-- <input type="text" class="form-control" placeholder="Enter your email" name="email" id="email"/> -->
-                        <select class="form-control" name="email", id="email">
+                        <select class="form-control" name="userid", id="email">
                         </select>
 					</div>
 					<div class="form-group">
