@@ -15,3 +15,4 @@
 
 -record (mail, {to, cc="", subject, body}).
 
+-record(member,{id,email}).%can be a domain member,or a member that in a group but not in a domain 

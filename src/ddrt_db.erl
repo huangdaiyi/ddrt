@@ -5,7 +5,8 @@
 -export ([start/0, stop/0]).
 -export ([update/2, select/3, add_report/1, add_group/1,
          get_not_report_emails/2, get_report/3, check_today_report/1, 
-         get_all_reports/3, get_send_users/1, get_groups/0]).
+         get_all_reports/3, get_send_users/1, get_groups/0, get_dommember/1,get_notdommember/1]).
+
 
 
 %%
@@ -32,7 +33,6 @@ init_db() ->
 init_prepare() ->
     [ok = emysql:prepare(K,V) || {K,V} <- ?DB_SCRIPT],
     ok.
-
 
 get_record_info(groups) ->
     record_info(fields, groups);
@@ -89,6 +89,12 @@ check_today_report(UserID) ->
 
 get_send_users(GroupID) ->
     select(get_send_users, send_user, [GroupID]).
+
+get_dommember(Params)->%Params::[GroupId,DomainName]
+    select(get_dommeber,member,Params).
+
+get_notdommember(Params)->
+    select(get_notdommeber,member,Params).%Param::[GroupId]
 
 
 %-spec get_report(Date :: datetime(), DayNum :: integer(), GroupID:: integer()) -> any().

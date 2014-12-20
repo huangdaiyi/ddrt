@@ -1,5 +1,5 @@
 -module (ddrt_utils).
--export ([build_report_body/1, datetime_to_string/1, datetime_format/1]).
+-export ([build_report_body/1, datetime_to_string/1, datetime_format/1,user_format/1]).
 -include ("include/ddrt.hrl").
 
 build_report_body(Reports) ->
@@ -24,6 +24,7 @@ datetime_format(Date) ->
 
 
 user_format(Result)->
-    lists:map(fun(#userentity{dname = Dname, email = Email,type=Type,receive_type=Receivetype,gname=GroupName,template=Template}) -> 
-                {obj, [{email,Email},{groupname,GroupName},{domainname, Dname},{type,Type},{receivetype,Receivetype},{template,Template}]}
+    lists:map(fun(#userentity{id=Id, dname=Dname, email = Email,type=Type,receive_type=Receivetype,gname=GroupName,template=Template}) -> 
+                {obj, [{id,Id},{email,Email},{groupname,GroupName},{domainname, Dname},
+                {type,Type},{receivetype,Receivetype},{template,Template}]}
             end, Result).
