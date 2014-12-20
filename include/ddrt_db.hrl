@@ -12,9 +12,9 @@ domains AS d ON gu.domain_id=d.id WHERE u.id = ?">>},
 INNER JOIN groups_users AS gu ON u.id=gu.user_id INNER JOIN groups AS g ON gu.group_id=g.id INNER JOIN
 domains AS d ON gu.domain_id=d.id ">>},
 
-{add_user, <<"insert into users(email,type) values(?,?);">>},
+{add_user, <<"INSERT IGNORE  INTO users(email,type) VALUES(?,?);">>},
 
-{add_group, <<"INSERT INTO ddrt.groups(`name`, template) VALUES (?,?);">>},
+{add_group, <<"INSERT IGNORE INTO ddrt.groups(`name`, template) VALUES (?,?);">>},
 
 {get_dommeber,<<"select u.id,u.email from users as u inner join groups_users as gu on u.id=gu.user_id  inner join domains as d
 on d.group_id=gu.group_id where gu.group_id=? and d.name = ?">> },
