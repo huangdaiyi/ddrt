@@ -185,20 +185,6 @@ get_body(Reports) ->
 
 
 build_body(UserReports) ->
-
- % [<0.39.0>,"~p~n",
- %                       [{"Hardy.D.Huang@newegg.com",
- %                         [[{email,"Hardy.D.Huang@newegg.com"},{15,"math"}]]},
- %                        {"test@email.com",
- %                         [[{email,"test@email.com"},{14,"ddrt"}],
- %                          [{email,"test@email.com"},{19,"ddrt coding"}],
- %                          [{email,"test@email.com"},{18,"ddrt coding"}]]},
- %                        {"Tristan@email.com",
- %                         [[{email,"Tristan@email.com"},{16,"asdfasdfasd"}],
- %                          [{email,"Tristan@email.com"},{13,"what"}]]},
- %                        {"Tristan1@email.com",
- %                         [[{email,"Tristan1@email.com"},{0,"N/A"}]]}]],
- %                      []
 	Today = get_today(),
 	%io:format(dict:to_list(UserReports)),
 	dict:fold(fun (K, V, Acc) ->
