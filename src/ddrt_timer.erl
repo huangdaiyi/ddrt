@@ -79,13 +79,15 @@ get_remind_user()->
 
 send_remind() ->
 	Users = get_remind_user(),
-	io:format("~n~p~n", [Users]),
+	%io:format("~n~p~n", [Users]),
 	send_remind(Users).
 
 send_remind([]) -> ok;
 send_remind([#email_list{email=Email}|RestUsers]) ->
 	% {ok,IP} = neg_hydra:get_env(ip,{0,0,0,0}),
     {ok, ReportUrl} = neg_hydra:get_env(report_address),
+    {ok, T} = neg_hydra:get_env(ddrt_time),
+
 	User = binary_to_list(Email),
 	Body = "<!DOCTYPE HTML>
 			<html>
@@ -95,7 +97,8 @@ send_remind([#email_list{email=Email}|RestUsers]) ->
 			<body style=\"color:#0099CC\">
 				<p>
 			       Dear " ++ string:substr(User, 1, string:str(User,"@")-1) ++",<br/><br/>
-			       <Strong>Please <a href=\""++ ReportUrl ++"\">submit</a> daily reports in a timely manner(Before 18:00).</strong>
+			       <Strong>Please <a href=\""++ ReportUrl ++"\">submit</a> daily reports in a timely manner(Before "++
+			        proplists:get_value(send, T) ++").</strong>
 			    </p>
 			    <p style=\"font-style: italic;\">
 			       Cheers,<br/>
@@ -104,7 +107,7 @@ send_remind([#email_list{email=Email}|RestUsers]) ->
 			</body>
 			</html>",
 
-	Subject = "(Info)Submit Daily Report Remind---test",
+	Subject = "(Info)Submit Daily Report Remind",
 	Cc = "",
 	Mail = #mail{to=User, cc=Cc, subject=Subject, body=Body},
 	spawn(ddrt_mail, send_mail, [Mail]),
@@ -186,7 +189,6 @@ get_body(Reports) ->
 
 build_body(UserReports) ->
 	Today = get_today(),
-	%io:format(dict:to_list(UserReports)),
 	dict:fold(fun (K, V, Acc) ->
 					"<tr><td class=\"center\">" ++string:substr(K, 1, string:str(K, "@")-1) ++ "</td>
 					     <td class=\"large\">"++ proplists:get_value(Today, V, "N/A") ++ "</td>
