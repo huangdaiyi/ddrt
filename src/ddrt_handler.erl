@@ -27,17 +27,14 @@ responsed(_Code, _Req) ->
 %%%================================================
 do_get(["api", "v1", "users"|_], _DocRoot, _Req) ->
     Result = ddrt_db:select(get_users,userentity,[]),
-    Json = lists:map(fun(#userentity{dname = Dname, email = Email,type=Type,receive_type=Receivetype,gname=GroupName,template=Template}) -> 
-    {obj, [{email,Email},{groupname,GroupName},{domainname, Dname},{type,Type},{receivetype,Receivetype},{template,Template}]}
-    end, Result),
+    Json = ddrt_utils:user_format(Result),
     {200, [], list_to_binary(rfc4627:encode(Json))};
 
 do_get(["api", "v1", "user", UserID], _DocRoot, _Req) ->
     Result = ddrt_db:select(get_user,userentity,[UserID]),
-    Json = lists:map(fun(#userentity{dname = Dname, email = Email,type=Type,receive_type=Receivetype,gname=GroupName,template=Template}) -> 
-         {obj, [{email,Email},{groupname,GroupName},{domainname, Dname},{type,Type},{receivetype,Receivetype},{template,Template}]}
-    end, Result),
+    Json = ddrt_utils:user_format(Result),
     {200, [], list_to_binary(rfc4627:encode(Json))};
+
 
 do_get(["api", _V, "reports", GroupID, Date], _DocRoot, _Req) ->
     Result = ddrt_db:get_report(list_to_binary(Date), <<"7">>, list_to_binary(GroupID)),
@@ -70,15 +67,27 @@ do_put(["api", _V, "group"], _DocRoot, Req) ->
     end;
 
 do_put(["api", _V, "report"], _DocRoot, Req) ->
-    {obj, Data} = Req:json_body(),
-    UserID = proplists:get_value("userid", Data), 
-    Content = proplists:get_value("content", Data),
-    Datetime = proplists:get_value("datetime", Data),
-    case ddrt_db:add_report([UserID, Content, Datetime]) of
-        ok ->
-             {200, [], <<"Success">>};
-        _ ->
-             {500, [], <<"Failed">>}
+    %{obj, Data} = Req:json_body(),
+    Data = Req:call(parse_post),
+    
+    case proplists:get_value("userid", Data) of
+        undefined ->
+            {200, [], <<"userid can not be empty">>};
+
+        UserID ->
+            case ddrt_db:check_today_report(UserID) of 
+                [] -> 
+                    Content = ddrt_utils:format_data_line(proplists:get_value("content", Data, "")),
+                    Datetime = proplists:get_value("datetime", Data, calendar:local_time()),
+                    case ddrt_db:add_report([UserID, Content, Datetime]) of
+                        ok ->
+                             {200, [], <<"Success">>};
+                        _ ->
+                             {500, [], <<"Failed">>}
+                    end;
+                _Any ->
+                    {200, [], <<"You have already submitted">>}
+            end
     end;
 
 do_put(["api", "v1","adduser"], _DocRoot, Req) ->
@@ -95,7 +104,7 @@ do_put(["api", "v1","adduser"], _DocRoot, Req) ->
      end;
 
 do_put(_, _DocRoot, _Req) ->
-    {404, [], <<>>}.
+    {404, [], <<>> }.
 
 
 %%%================================================

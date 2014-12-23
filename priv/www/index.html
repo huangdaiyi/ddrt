@@ -21,30 +21,26 @@
 
     	<script type="text/javascript">
     		$(document).ready(function(){
+               
+                user = getCookie(cookie_key) || 0;
+                email_sel$ = $("#email").append('<option value="" disabled="">Select your email</option>'); 
 
-                var xmlhttp;
-                if (window.XMLHttpRequest){// code for IE7+, Firefox, Chrome, Opera, Safari
-                    xmlhttp=new XMLHttpRequest();
-                }
-                else{// code for IE6, IE5
-                    xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
-                }
-                document.getElementById("email").disabled = true;
-                xmlhttp.onreadystatechange=function(){
-                    if(xmlhttp.readyState==4 && xmlhttp.status==200){
-                        document.getElementById("email").innerHTML=xmlhttp.responseText;
-                        document.getElementById("email").disabled = false;
-                    }
-                }
-                xmlhttp.open("GET", "email_list", true);
-                xmlhttp.send();
+                $.getJSON('api/v1/users',function(data) {
+                    $.each(data, function(k,v) {
+                        if (v.type === "R")
+                            email_sel$.append('<option ' + (v.id == user?'selected = "selected"':'') 
+                                + ' value="'+ v.id +' ">'+ v.email + '</option>');
+                    });
+                    email_sel$.prop("disabled", false);
+                })
 
     			$('#success').hide();
     			$('#form').validate({
         			rules: {
             			email: {
                             // minlength: 3,
-                            email: true,
+                            number:true,
+                            digits:true,
                             required: true
                         },
             			content: {
@@ -62,9 +58,11 @@
         			}
     			});
 
+
     			$('#form').submit(function(){
 
                     var email = $.trim($('#email').val());
+                    setCookie(cookie_key,email,30);
                     var content = $.trim($('#content').val());
                     if (email === '' || content === '') {
                         var options = {
@@ -75,9 +73,11 @@
                     }
 
     				var options = {
+                        type: 'put',
     					target: '#success-content',
     					success: showResponse,
-    					resetForm: true,
+    					//resetForm: true,
+                        //clearForm: true,
     					timeout: 3000
     				};
 
@@ -85,15 +85,46 @@
 
     				return false;
     			});
+
     		});
 
     		function showResponse(responseText, statusText){
+                //setCurrent();
+                clearContent();
     			$('#success').show();
                 $("#success").fadeTo(2000, 500).slideUp(1000, function(){
                     $("#success").hide();
                 });
     		};
 
+        var cookie_key = "__current_user";
+
+        var clearContent = function(){
+            $("#content").val("");
+        };
+
+        var setCookie = function(c_name,value,expiredays){
+            var exdate=new Date()
+            exdate.setDate(exdate.getDate()+expiredays)
+            cookieVal=c_name+ "=" +escape(value)+((expiredays==null) ? "" : ";expires="+exdate.toGMTString());
+            //alert(cookieVal);
+            document.cookie=cookieVal;
+        };
+
+        //获取cookie
+        var getCookie = function(c_name){
+            if (document.cookie.length>0){
+                c_start=document.cookie.indexOf(c_name + "=")
+            if (c_start!=-1){ 
+                c_start=c_start + c_name.length+1 
+                c_end=document.cookie.indexOf(";",c_start)
+                if (c_end==-1) c_end=document.cookie.length
+                //document.write(document.cookie.substring(c_start,c_end)+"<br>");
+                return unescape(document.cookie.substring(c_start,c_end))
+                } 
+            }
+            return ""
+        };
     	</script>
 	</head>
 	<body>
@@ -118,11 +149,11 @@
     			<h1 class="panel-title">Welcome to use DDRT</h1>
   			</div>
 			<div class="panel-body">
-				<form role="form" id="form" method="post" enctype="multipart/form-data" action="submit">
+				<form role="form" id="form" method="put" action="api/v1/report">
 					<div class="form-group">
 						<label class="control-label" for="email">Email address</label>
 						<!-- <input type="text" class="form-control" placeholder="Enter your email" name="email" id="email"/> -->
-                        <select class="form-control" name="email", id="email">
+                        <select class="form-control" name="userid", id="email">
                         </select>
 					</div>
 					<div class="form-group">

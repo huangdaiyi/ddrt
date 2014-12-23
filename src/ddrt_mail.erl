@@ -17,7 +17,7 @@ send_mail(#?MAIL{to = To, cc = Cc, subject = Subject,body = Body} = Mail) when i
                 {"SmtpSetting",{obj,[{"SubjectEncoding",<<"UTF8">>},{"BodyEncoding",<<"UTF8">>}]}}],
 
     BodyTemplate = rfc4627:encode({obj, Content}),
-
+    
     Request = {getEmailHost(),[{"accept","application/json"}], "application/json", BodyTemplate},
  	case httpc:request(post, Request, [], []) of
     	{ok,{{_,200,_},_Headers,_Content}} -> true;
@@ -26,7 +26,7 @@ send_mail(#?MAIL{to = To, cc = Cc, subject = Subject,body = Body} = Mail) when i
 
 getEmailHost() ->
     DefaultHost = "http://10.1.50.233/framework/v1/mail",
-    case application:get_env(drt, email_server, DefaultHost) of
-        [] -> DefaultHost;
+    case neg_hydra:get_env(email_server, DefaultHost) of
+        {ok, Value} -> Value;
         Host -> Host
     end.
