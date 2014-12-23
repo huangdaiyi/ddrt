@@ -20,10 +20,11 @@ datetime_format(Date) when is_binary(Date) ->
     Date;
 datetime_format(Date) ->
     {{Year, Month, Day}, _} = Date,
-    string:join([integer_to_list(Year),integer_to_list(Month),integer_to_list(Day)],"-").
+    list_to_binary(string:join([integer_to_list(Year),integer_to_list(Month),integer_to_list(Day)],"-")).
 
 
 user_format(Result)->
-    lists:map(fun(#userentity{dname = Dname, email = Email,type=Type,receive_type=Receivetype,gname=GroupName,template=Template}) -> 
-                {obj, [{email,Email},{groupname,GroupName},{domainname, Dname},{type,Type},{receivetype,Receivetype},{template,Template}]}
+    lists:map(fun(#userentity{id=Id, dname=Dname, email = Email,type=Type,receive_type=Receivetype,gname=GroupName,template=Template}) -> 
+                {obj, [{id,Id},{email,Email},{groupname,GroupName},{domainname, Dname},
+                {type,Type},{receivetype,Receivetype},{template,Template}]}
             end, Result).
