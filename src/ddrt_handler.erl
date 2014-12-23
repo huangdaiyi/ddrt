@@ -77,7 +77,7 @@ do_put(["api", _V, "report"], _DocRoot, Req) ->
         UserID ->
             case ddrt_db:check_today_report(UserID) of 
                 [] -> 
-                    Content = proplists:get_value("content", Data, ""),
+                    Content = ddrt_utils:format_data_line(proplists:get_value("content", Data, "")),
                     Datetime = proplists:get_value("datetime", Data, calendar:local_time()),
                     case ddrt_db:add_report([UserID, Content, Datetime]) of
                         ok ->

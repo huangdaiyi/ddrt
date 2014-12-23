@@ -18,7 +18,7 @@ init([]) ->
 	{ok, T} = neg_hydra:get_env(ddrt_time),
 	RemindTime = to_minutes(proplists:get_value(remind, T)),
 	SendTime = to_minutes(proplists:get_value(send, T)),
-	Timespan = proplists:get_value(span, T)*60000,
+	Timespan = round(proplists:get_value(span, T)*60000),
 	{ok, {RemindTime, SendTime, Timespan}, 0}.
 
 terminate(_Reason, _State) ->
@@ -34,8 +34,8 @@ handle_call(_Message, _From, State) ->
 
 handle_info(timeout, State) ->
 	{Re, Se, Sp} = State,
-	send(Re, Se, Sp/60000),
-	{noreply, State, Sp}.
+	{ok, NewSp} = send(Re, Se, Sp div 60000),
+	{noreply, State, NewSp*60000}.
 
 code_change(_OldVsn, State, _Extra) ->
 	{_, _, Sp} = State,
@@ -60,26 +60,33 @@ to_minutes(TimeStr) ->
 	H*60 + M.
 
 
-send(RemindTime, SendTime, TimeSpan) ->
+send(RemindTime, SendTime, Timespan) ->
 	{_, {H, M, _}} = calendar:local_time(),
 	Minutes	= H*60 + M,
 	%send_mail().
 	if
 		Minutes	>= RemindTime andalso Minutes < SendTime ->
-		send_remind();
-		Minutes	>= SendTime	andalso Minutes < (SendTime + TimeSpan) ->
-		send_mail();
-		true -> ok
+		RestTime = SendTime - Minutes,
+		send_remind(),
+		if 
+			RestTime < Timespan ->  
+				{ok, RestTime};
+			true -> {ok, Timespan}
+		end;
+		Minutes	>= SendTime	andalso Minutes < (SendTime + Timespan) ->
+		send_mail(),
+		{ok, Timespan};
+		true -> {ok, Timespan}
 	end.
 
 
 get_remind_user()->
-	ddrt_db:get_not_report_emails(calendar:local_time(), ?REPORTDAYS).
+	ddrt_db:get_not_report_emails(calendar:local_time(), 1).
 
 
 send_remind() ->
 	Users = get_remind_user(),
-	%io:format("~n~p~n", [Users]),
+	io:format("~n~p~n", [Users]),
 	send_remind(Users).
 
 send_remind([]) -> ok;
@@ -107,7 +114,7 @@ send_remind([#email_list{email=Email}|RestUsers]) ->
 			</body>
 			</html>",
 
-	Subject = "(Info)Submit Daily Report Remind",
+	Subject = "(Info)Submit Daily Report Remind " ++ ddrt_utils:get_str_today(),
 	Cc = "",
 	Mail = #mail{to=User, cc=Cc, subject=Subject, body=Body},
 	spawn(ddrt_mail, send_mail, [Mail]),
@@ -130,7 +137,8 @@ send_mail([#groups{id=ID, group_name=Name} | RestGroups]) ->
 	Cc = string:join([ binary_to_list(Email) || #send_user{email=Email, receive_type=Type} <- SendUsers,
 		string:to_lower(binary_to_list(Type)) == "cc"], ";"),
 	
-	Subject = "(Report)" ++ StrName ++ " Daily Report" ++ getNowTime(),
+	Subject = "(Report)" ++ StrName ++ " Daily Report " ++ ddrt_utils:get_str_today(),
+	Today = ddrt_utils:get_today_days(),
 	Body = "<!DOCTYPE HTML><html><head>
 <meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">
 <title>DFIS Daily Report</title>
@@ -157,13 +165,13 @@ send_mail([#groups{id=ID, group_name=Name} | RestGroups]) ->
             <thead>
                 <tr>
                     <th>Team Member</th>
-                    <th>Today</th>
-                    <th>Yesterday</th>
-                    <th>D3</th>
-                    <th>D4</th>
-                    <th>D5</th>
-                    <th>D6</th>
-                    <th>D7</th>
+                    <th>Today<br/>" ++ ddrt_utils:days_to_str_date(Today) ++ "</th>
+                    <th>Yesterday<br/>" ++ ddrt_utils:days_to_str_date(Today - 1)++"</th>
+                    <th>D3<br/>" ++ ddrt_utils:days_to_str_date(Today - 2) ++ "</th>
+                    <th>D4<br/>" ++ ddrt_utils:days_to_str_date(Today - 3) ++ "</th>
+                    <th>D5<br/>" ++ ddrt_utils:days_to_str_date(Today - 4) ++ "</th>
+                    <th>D6<br/>" ++ ddrt_utils:days_to_str_date(Today - 5) ++ "</th>
+                    <th>D7<br/>" ++ ddrt_utils:days_to_str_date(Today - 6) ++ "</th>
                 </tr>
             </thead>
             <tbody>" ++ get_body(Reports) ++ "</tbody></table></div></body></html>",
@@ -188,7 +196,7 @@ get_body(Reports) ->
 
 
 build_body(UserReports) ->
-	Today = get_today(),
+	Today = ddrt_utils:get_today_days(),
 	dict:fold(fun (K, V, Acc) ->
 					"<tr><td class=\"center\">" ++string:substr(K, 1, string:str(K, "@")-1) ++ "</td>
 					     <td class=\"large\">"++ proplists:get_value(Today, V, "N/A") ++ "</td>
@@ -209,7 +217,7 @@ parse_reports(Reports, DefaultKey)  ->
 parse_reports([], _DefaultKey, Acct) -> Acct;
 parse_reports([#report_mode{email=Email, content=Content, date=Date,domain_name=DomainName} | R], DefaultKey, Acct) ->
 	NewDay	= 	case Date of
-					{datetime, {{_, _, D}, _}} -> D;
+					{datetime, {{Y, M, D}, _}} -> ddrt_utils:get_days(Y, M, D);
 					undefined -> 0
 			 	end,
 	NewCon  =	case Content of
@@ -244,15 +252,4 @@ parse_users(Items) ->
 					 end
 				end, dict:new(), Items).
 
-
-
-% Get now time and format
-getNowTime() ->
-	{{Y,M,D},_} = calendar:local_time(),
-	string:join([integer_to_list(Y),integer_to_list(M),integer_to_list(D)],"-").
-
-
-get_today() ->
-	{{_,_,D},_} = calendar:local_time(),
-	D.
 

@@ -38,7 +38,7 @@ d.`name` AS domain_name, d.id AS domain_id
 
 
 {check_today_report, <<"SELECT r.Id FROM reports AS r  
-					WHERE r.user_id =? AND r.`date` BETWEEN  ? AND DATE_ADD(?,INTERVAL 1 DAY);">>},
+					WHERE r.user_id =? AND r.`date` BETWEEN ? AND DATE_ADD(?,INTERVAL 1 DAY);">>},
 
 
 {get_all_reports, <<"SELECT u.id AS user_id, u.email, r.content, r.`date`, g.`name` AS group_name, g.template, gu.receive_type, 
@@ -51,9 +51,9 @@ d.`name` AS domain_name, d.id AS domain_id
 					WHERE (r.`date` BETWEEN DATE_SUB(?,INTERVAL ? DAY) 
 					AND DATE_ADD(?,INTERVAL 1 DAY) or r.`date` IS NULL) AND g.id = ? AND u.`type` = 'R'">>},
 
-{get_not_report_emails, <<"SELECT u.email FROM ddrt.users AS u WHERE u.`type` = 'r'
+{get_not_report_emails, <<"SELECT u.email FROM ddrt.users AS u WHERE u.`type` = 'R'
  						 AND NOT EXISTS(SELECT r.user_id FROM ddrt.reports AS r 
- 						 WHERE r.`date` BETWEEN DATE_SUB(?,INTERVAL ? DAY) AND ? AND u.id = r.user_id)">>},
+ 						 WHERE r.`date` BETWEEN ? AND DATE_ADD(?, INTERVAL ? DAY) AND u.id = r.user_id)">>},
 
 {get_groups, <<"SELECT id, `name` AS group_name FROM ddrt.groups">>}
 

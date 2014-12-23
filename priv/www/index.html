@@ -21,13 +21,15 @@
 
     	<script type="text/javascript">
     		$(document).ready(function(){
-
+               
+                user = getCookie(cookie_key) || 0;
                 email_sel$ = $("#email").append('<option value="" disabled="">Select your email</option>'); 
 
                 $.getJSON('api/v1/users',function(data) {
                     $.each(data, function(k,v) {
                         if (v.type === "R")
-                            email_sel$.append('<option value="'+ v.id +'">'+ v.email + '</option>');
+                            email_sel$.append('<option ' + (v.id == user?'selected = "selected"':'') 
+                                + ' value="'+ v.id +' ">'+ v.email + '</option>');
                     });
                     email_sel$.prop("disabled", false);
                 })
@@ -56,9 +58,11 @@
         			}
     			});
 
+
     			$('#form').submit(function(){
 
                     var email = $.trim($('#email').val());
+                    setCookie(cookie_key,email,30);
                     var content = $.trim($('#content').val());
                     if (email === '' || content === '') {
                         var options = {
@@ -72,7 +76,8 @@
                         type: 'put',
     					target: '#success-content',
     					success: showResponse,
-    					resetForm: true,
+    					//resetForm: true,
+                        //clearForm: true,
     					timeout: 3000
     				};
 
@@ -80,15 +85,46 @@
 
     				return false;
     			});
+
     		});
 
     		function showResponse(responseText, statusText){
+                //setCurrent();
+                clearContent();
     			$('#success').show();
                 $("#success").fadeTo(2000, 500).slideUp(1000, function(){
                     $("#success").hide();
                 });
     		};
 
+        var cookie_key = "__current_user";
+
+        var clearContent = function(){
+            $("#content").val("");
+        };
+
+        var setCookie = function(c_name,value,expiredays){
+            var exdate=new Date()
+            exdate.setDate(exdate.getDate()+expiredays)
+            cookieVal=c_name+ "=" +escape(value)+((expiredays==null) ? "" : ";expires="+exdate.toGMTString());
+            //alert(cookieVal);
+            document.cookie=cookieVal;
+        };
+
+        //获取cookie
+        var getCookie = function(c_name){
+            if (document.cookie.length>0){
+                c_start=document.cookie.indexOf(c_name + "=")
+            if (c_start!=-1){ 
+                c_start=c_start + c_name.length+1 
+                c_end=document.cookie.indexOf(";",c_start)
+                if (c_end==-1) c_end=document.cookie.length
+                //document.write(document.cookie.substring(c_start,c_end)+"<br>");
+                return unescape(document.cookie.substring(c_start,c_end))
+                } 
+            }
+            return ""
+        };
     	</script>
 	</head>
 	<body>
