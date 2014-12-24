@@ -184,7 +184,6 @@ send_mail([#groups{id=ID, group_name=Name} | RestGroups]) ->
 get_body(Reports) ->
 	DefaultKey = "no_domain",
 	Domians = parse_reports(Reports, DefaultKey),
-	io:format("~n~p~n", [dict:to_list(Domians)]),
 	{ok, No_Domain} = dict:find(DefaultKey, Domians),
 
 	dict:fold(fun(K, V, Acc) -> 
