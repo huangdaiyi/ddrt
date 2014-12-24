@@ -86,7 +86,7 @@ get_remind_user()->
 
 send_remind() ->
 	Users = get_remind_user(),
-	io:format("~n~p~n", [Users]),
+	%io:format("~n~p~n", [Users]),
 	send_remind(Users).
 
 send_remind([]) -> ok;
@@ -152,7 +152,7 @@ send_mail([#groups{id=ID, group_name=Name} | RestGroups]) ->
 	   td, th { padding: 3px 7px 3px 7px; }
 	   tbody tr { background: #FCFDFE; }
 	   td { word-break:break-all; word-wrap:break-word;}
-	   td.center { text-align: center; }
+	   td.center { text-align: center;  }
 	   td.large { width: 13%; }
        td.small { width: 9%; }
        td.left {text-align:left; background: #33B5E5; }
@@ -184,21 +184,18 @@ send_mail([#groups{id=ID, group_name=Name} | RestGroups]) ->
 get_body(Reports) ->
 	DefaultKey = "no_domain",
 	Domians = parse_reports(Reports, DefaultKey),
+	{ok, No_Domain} = dict:find(DefaultKey, Domians),
+
 	dict:fold(fun(K, V, Acc) -> 
-					if
-						K =:= DefaultKey ->
-							Acc ++ build_body(parse_users(V));
-						true ->
-							Acc ++ ("<tr><td class=\"left\">" ++ K ++ "</td></tr>") ++ build_body(parse_users(V))
-					end
-	 			end, "", Domians).
+					Acc ++ ("<tr><td class=\"left\"><b>" ++ K ++ "</b></td></tr>") ++ build_body(parse_users(V))
+	 			end, build_body(parse_users(No_Domain)), dict:erase(DefaultKey,Domians)).
 
 
 
 build_body(UserReports) ->
 	Today = ddrt_utils:get_today_days(),
 	dict:fold(fun (K, V, Acc) ->
-					"<tr><td class=\"center\">" ++string:substr(K, 1, string:str(K, "@")-1) ++ "</td>
+					"<tr><td class=\"center\">" ++ string:substr(K, 1, string:str(K, "@")-1) ++ "</td>
 					     <td class=\"large\">"++ proplists:get_value(Today, V, "N/A") ++ "</td>
 					     <td class=\"large\">"++ proplists:get_value(Today - 1, V, "N/A") ++ "</td>
 					     <td class=\"large\">"++ proplists:get_value(Today - 2, V, "N/A") ++ "</td>
@@ -220,23 +217,28 @@ parse_reports([#report_mode{email=Email, content=Content, date=Date,domain_name=
 					{datetime, {{Y, M, D}, _}} -> ddrt_utils:get_days(Y, M, D);
 					undefined -> 0
 			 	end,
+
 	NewCon  =	case Content of
 					undefined -> <<"N/A">>;
 					Any -> Any
 				end,
-	Item = [{email, binary_to_list(Email)}, {NewDay, binary_to_list(NewCon)}],
-	NewName = binary_to_list(DomainName),
 
-	NewDict  =  if
-					length(NewName) =:= 0 -> dict:append(DefaultKey, Item, Acct);
-					true ->
-						case dict:is_key(NewName, Acct) of
-						  	true ->
-						  		dict:append(NewName, Item, Acct);
-						  	false -> 
-						  		dict:store(NewName, [Item], Acct)
-						end
+	Item = [{email, binary_to_list(Email)}, {NewDay, binary_to_list(NewCon)}],
+
+	NewName = 	case DomainName of
+					Other when is_binary(Other) ->
+						binary_to_list(Other);
+					_ ->
+						DefaultKey
+			  	end,
+
+	NewDict =   case dict:is_key(NewName, Acct) of
+				  	true ->
+				  		dict:append(NewName, Item, Acct);
+				  	false -> 
+				  		dict:store(NewName, [Item], Acct)
 				end,
+
 	parse_reports(R, DefaultKey, NewDict).
 
 
