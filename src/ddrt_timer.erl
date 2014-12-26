@@ -86,12 +86,10 @@ get_remind_user()->
 
 send_remind() ->
 	Users = get_remind_user(),
-	%io:format("~n~p~n", [Users]),
 	send_remind(Users).
 
 send_remind([]) -> ok;
 send_remind([#email_list{email=Email}|RestUsers]) ->
-	% {ok,IP} = neg_hydra:get_env(ip,{0,0,0,0}),
     {ok, ReportUrl} = neg_hydra:get_env(report_address),
     {ok, T} = neg_hydra:get_env(ddrt_time),
 
@@ -104,8 +102,8 @@ send_remind([#email_list{email=Email}|RestUsers]) ->
 			<body style=\"color:#0099CC\">
 				<p>
 			       Dear " ++ string:substr(User, 1, string:str(User,"@")-1) ++",<br/><br/>
-			       <Strong>Please <a href=\""++ ReportUrl ++"\">submit</a> daily reports in a timely manner(Before "++
-			        proplists:get_value(send, T) ++").</strong>
+			       <Strong>Please <a href=\"" ++ ReportUrl ++ "\">submit</a> daily reports in a timely manner(Before "++
+			        proplists:get_value(send, T) ++ ").</strong>
 			    </p>
 			    <p style=\"font-style: italic;\">
 			       Cheers,<br/>
@@ -152,10 +150,8 @@ send_mail([#groups{id=ID, group_name=Name} | RestGroups]) ->
 	   td, th { padding: 3px 7px 3px 7px; }
 	   tbody tr { background: #FCFDFE; }
 	   td { word-break:break-all; word-wrap:break-word;}
-	   td.center { text-align: center;  }
-	   td.large { width: 13%; }
-       td.small { width: 9%; }
-       td.left {text-align:left; background: #33B5E5; }
+	   td.center { text-align: center; width:10%}
+       td.left {text-align:left; background: #CCFFFF; }
 	</style>
 </head>
 <body>
@@ -175,8 +171,8 @@ send_mail([#groups{id=ID, group_name=Name} | RestGroups]) ->
                 </tr>
             </thead>
             <tbody>" ++ get_body(Reports) ++ "</tbody></table></div></body></html>",
-    %io:format(Body),
 	Mail = #mail{to=To, cc=Cc, subject=Subject, body=Body},
+	%Mail = #mail{to="Hardy.D.Huang@newegg.com", cc="", subject=Subject, body=Body},
 	spawn(ddrt_mail, send_mail, [Mail]),
 	send_mail(RestGroups).
 
@@ -187,7 +183,7 @@ get_body(Reports) ->
 	{ok, No_Domain} = dict:find(DefaultKey, Domians),
 
 	dict:fold(fun(K, V, Acc) -> 
-					Acc ++ ("<tr><td class=\"left\"><b>" ++ K ++ "</b></td></tr>") ++ build_body(parse_users(V))
+					Acc ++ ("<tr><td class=\"left\" colspan=\"8\"><b>" ++ K ++ "</b></td></tr>") ++ build_body(parse_users(V))
 	 			end, build_body(parse_users(No_Domain)), dict:erase(DefaultKey,Domians)).
 
 
@@ -196,13 +192,13 @@ build_body(UserReports) ->
 	Today = ddrt_utils:get_today_days(),
 	dict:fold(fun (K, V, Acc) ->
 					"<tr><td class=\"center\">" ++ string:substr(K, 1, string:str(K, "@")-1) ++ "</td>
-					     <td class=\"large\">"++ proplists:get_value(Today, V, "N/A") ++ "</td>
-					     <td class=\"large\">"++ proplists:get_value(Today - 1, V, "N/A") ++ "</td>
-					     <td class=\"large\">"++ proplists:get_value(Today - 2, V, "N/A") ++ "</td>
-					     <td class=\"large\">"++ proplists:get_value(Today - 3, V, "N/A") ++ "</td>
-					     <td class=\"large\">"++ proplists:get_value(Today - 4, V, "N/A") ++ "</td>
-					     <td class=\"large\">"++ proplists:get_value(Today - 5, V, "N/A") ++ "</td>
-					     <td class=\"large\">"++ proplists:get_value(Today - 6, V, "N/A") ++ "</td>
+					     <td width=\"15%;\">" ++ proplists:get_value(Today, V, "N/A") ++ "</td>
+					     <td width=\"14%\">" ++ proplists:get_value(Today - 1, V, "N/A") ++ "</td>
+					     <td width=\"13%\">" ++ proplists:get_value(Today - 2, V, "N/A") ++ "</td>
+					     <td width=\"12%\">" ++ proplists:get_value(Today - 3, V, "N/A") ++ "</td>
+					     <td width=\"12%\">" ++ proplists:get_value(Today - 4, V, "N/A") ++ "</td>
+					     <td width=\"12%\">" ++ proplists:get_value(Today - 5, V, "N/A") ++ "</td>
+					     <td width=\"12%\">" ++ proplists:get_value(Today - 6, V, "N/A") ++ "</td>
 					     </tr>" ++ Acc
 			   end, "", UserReports).
 
@@ -253,5 +249,3 @@ parse_users(Items) ->
 					  		dict:store(ItemKey, [NewItem], Acct)
 					 end
 				end, dict:new(), Items).
-
-
