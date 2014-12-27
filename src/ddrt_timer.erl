@@ -65,7 +65,15 @@ send(RemindTime, SendTime, Timespan) ->
 	Minutes	= H*60 + M,
 	%send_mail().
 	if
+
 		Minutes	>= RemindTime andalso Minutes < SendTime ->
+
+			if 
+				Minutes	>= 1050	andalso Minutes < (1050 + Timespan) ->
+					send_mail([#groups{id = 2, group_name = <<"PO Team">>}]);
+				true -> pass
+			end,
+
 			RestTime = SendTime - Minutes,
 			send_remind(),
 			if 
@@ -73,10 +81,6 @@ send(RemindTime, SendTime, Timespan) ->
 					{ok, RestTime};
 				true -> {ok, Timespan}
 			end;
-
-		Minutes	>= 1050	andalso Minutes < (1050 + Timespan) ->
-			send_mail([#groups{id = 2, group_name = <<"PO Team">>}]),
-			{ok, Timespan};	
 
 		Minutes	>= SendTime	andalso Minutes < (SendTime + Timespan) ->
 			send_mail(),
