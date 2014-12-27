@@ -66,21 +66,27 @@ send(RemindTime, SendTime, Timespan) ->
 	%send_mail().
 	if
 		Minutes	>= RemindTime andalso Minutes < SendTime ->
-		RestTime = SendTime - Minutes,
-		send_remind(),
-		if 
-			RestTime < Timespan ->  
-				{ok, RestTime};
-			true -> {ok, Timespan}
-		end;
+			RestTime = SendTime - Minutes,
+			send_remind(),
+			if 
+				RestTime < Timespan ->  
+					{ok, RestTime};
+				true -> {ok, Timespan}
+			end;
+
+		Minutes	>= 1050	andalso Minutes < (1050 + Timespan) ->
+			send_mail([#groups{id = 2, group_name = <<"PO Team">>}]),
+			{ok, Timespan};	
+
 		Minutes	>= SendTime	andalso Minutes < (SendTime + Timespan) ->
-		send_mail(),
-		{ok, Timespan};
+			send_mail(),
+			{ok, Timespan};
+
 		true -> {ok, Timespan}
 	end.
 
 
-get_remind_user()->
+get_remind_user() ->
 	ddrt_db:get_not_report_emails(calendar:local_time(), 1).
 
 
@@ -120,11 +126,14 @@ send_remind([#email_list{email=Email}|RestUsers]) ->
 
 send_mail() ->
 	Groups = ddrt_db:get_groups(),
-	send_mail(Groups).
+	%remove po ---> temp
+	RestGroups = lists:delete(#groups{id = 2, group_name = <<"PO Team">>}, Groups),
+	send_mail(RestGroups).
 
 send_mail([]) -> ok;
 send_mail([#groups{id=ID, group_name=Name} | RestGroups]) ->
 	%email, content, date, group_name, template, receive_type, domain_name
+
 	StrName = binary_to_list(Name),
 	Now = calendar:local_time(),
 	Reports = ddrt_db:get_all_reports(Now, ?REPORTDAYS, ID),
