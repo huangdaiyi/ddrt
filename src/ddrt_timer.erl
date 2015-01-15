@@ -89,7 +89,7 @@ send(RemindTime, SendTime, Timespan) ->
 		true -> 
 			RestRemindTime =  RemindTime - Minutes,
 			if 
-				RestRemindTime < Timespan ->  
+				RestRemindTime < Timespan andalso RestRemindTime > 0 ->  
 					{ok, RestRemindTime};
 				true -> {ok, Timespan}
 			end
