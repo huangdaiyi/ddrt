@@ -41,6 +41,12 @@ do_get(["api", _V, "reports", GroupID, Date], _DocRoot, _Req) ->
     Body = ddrt_utils:build_report_body(Result),
     {200, [{"Content-Type","JSON"}], rfc4627:encode(Body)};
 
+do_get(["api", "v1", "db", "refresh"], _DocRoot, _Req) ->
+    case erlang:whereis(ddrt_sup) of
+        undefined -> pass;
+        Pid -> erlang:exit(Pid, kill)
+    end,
+    {200, [{"Content-Type", "text/plain"}], ""};
 do_get(_Any, _DocRoot, _Req) ->
     {404, [], <<>>}.
         

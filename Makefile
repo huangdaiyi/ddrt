@@ -2,11 +2,17 @@ PREFIX:=../
 DEST:=$(PREFIX)$(PROJECT)
 
 REBAR=./rebar
+RELEASE=./release.script
 
-.PHONY: all edoc test clean build_plt dialyzer app
+.PHONY: all edoc test clean build_plt dialyzer app release
 
 all:
 	@$(REBAR) get-deps compile
+
+release:
+	@$(REBAR) get-deps compile
+	@rm -rf ddrt
+	@$(RELEASE) ddrt
 
 edoc: all
 	@$(REBAR) doc

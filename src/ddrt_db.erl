@@ -3,10 +3,10 @@
 -include ("include/ddrt.hrl").
 -include ("include/ddrt_db.hrl").
 -export ([start/0, stop/0]).
--export ([update/2, select/3, add_report/1, add_group/1,
-         get_not_report_emails/2, get_report/3, check_today_report/1, 
+-export ([update/2, select/3, add_report/1, add_group/1, get_report/3, check_today_report/1, 
          get_all_reports/3, get_send_users/1, get_groups/0, get_dommember/1,get_notdommember/1]).
-
+-export([get_not_report_emails/1, get_not_report_emails/2]).
+-export([get_scheduling/1]).
 
 
 %%
@@ -49,7 +49,9 @@ get_record_info(email_list) ->
 get_record_info(report_mode) ->
     record_info(fields, report_mode);
 get_record_info(send_user) ->
-    record_info(fields, send_user).
+    record_info(fields, send_user);
+get_record_info(scheduling) ->
+    record_info(fields, scheduling).
 
 
 
@@ -74,6 +76,15 @@ update(Pre,Params) when is_atom(Pre),is_list(Params) ->
             faild
     end.
 
+select(Pre,Record,Params) when is_atom(Pre),is_atom(Record),is_list(Params) ->
+    case emysql:execute(mysql_pool,Pre,Params) of
+        [Result,_] -> emysql:as_record(Result, Record, get_record_info(Record));
+        [[],_] -> [];
+        [] -> [];
+        {ok_packet,_,_,_,_,_,[]} -> [];
+        {result_packet,_,_,[],<<>>} -> [];
+        Result -> emysql:as_record(Result, Record, get_record_info(Record))
+    end.
 
 add_report(Params) ->
     update(add_report, Params).
@@ -121,14 +132,26 @@ get_not_report_emails(Date, DayNum) ->
     Reuslt = select(get_not_report_emails, email_list, Params),
     Reuslt.
 
-select(Pre,Record,Params) when is_atom(Pre),is_atom(Record),is_list(Params) ->
-    case emysql:execute(mysql_pool,Pre,Params) of
-        [Result,_] -> emysql:as_record(Result, Record, get_record_info(Record));
-        [[],_] -> [];
-        [] -> [];
-        {ok_packet,_,_,_,_,_,[]} -> [];
-        {result_packet,_,_,[],<<>>} -> [];
-        Result -> emysql:as_record(Result, Record, get_record_info(Record))
-    end.
+get_not_report_emails(GroupId) ->
+    BinDay = ddrt_utils:datetime_format(calendar:local_time()),
+    Params = [GroupId, BinDay, BinDay, 1],
+    select(get_not_report_emails, email_list, Params).
+
+% scheduling
+get_scheduling(Name) ->
+    Schedulings = select(get_scheduling, scheduling, [Name]),
+    {RemindSpan, ReportSpan} = lists:partition(fun
+        (#scheduling{type = <<"remind_time">>}) -> true;
+        (_) -> false end, Schedulings),
+    {extract_time(RemindSpan), extract_time(ReportSpan)}.
+
+
+%% %%%%%%%%%%%%
+%% private methods
+%% %%%%%%%%%%%%
+
+extract_time(Schedulings) ->
+    [{H, M} || #scheduling{scheduling_time={time, {H, M, _}}} <- Schedulings].
+
 
 

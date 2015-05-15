@@ -3,7 +3,7 @@
 
 -record (users, {id}).
 
--record (groups,{id, group_name}).
+-record (groups,{id, group_name, scheduling_name="basic"}).
 
 -record (report_mode, {user_id, email, content, date, group_name, template, receive_type, domain_name, domain_id}).
 
@@ -16,3 +16,5 @@
 -record (mail, {to, cc="", subject, body}).
 
 -record(member,{id,email}).%can be a domain member,or a member that in a group but not in a domain 
+
+-record(scheduling, {id, name, scheduling_time, type}).

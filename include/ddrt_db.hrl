@@ -51,10 +51,18 @@ d.`name` AS domain_name, d.id AS domain_id
 					WHERE (r.`date` BETWEEN DATE_SUB(?,INTERVAL ? DAY) 
 					AND DATE_ADD(?,INTERVAL 1 DAY) or r.`date` IS NULL) AND g.id = ? AND u.`type` = 'R'">>},
 
-{get_not_report_emails, <<"SELECT u.email FROM users AS u WHERE u.`type` = 'R'
- 						 AND NOT EXISTS(SELECT r.user_id FROM reports AS r 
- 						 WHERE r.`date` BETWEEN ? AND DATE_ADD(?, INTERVAL ? DAY) AND u.id = r.user_id)">>},
+{get_not_report_emails, <<"SELECT u.email FROM users AS u 
+INNER JOIN groups_users AS gu
+    ON u.id = gu.user_id
+WHERE u.`type` = 'R'
+    AND gu.group_id=?
+    AND 
+    NOT EXISTS(SELECT r.user_id FROM reports AS r 
+        WHERE r.`date` BETWEEN ? AND DATE_ADD(?, INTERVAL ? DAY) 
+        AND u.id = r.user_id);">>},
 
-{get_groups, <<"SELECT id, `name` AS group_name FROM groups">>}
+{get_groups, <<"SELECT id, `name` AS group_name, scheduling_name FROM groups">>},
+
+{get_scheduling, <<"SELECT id, name, scheduling_time, type FROM `scheduling` WHERE name = ?;">>}
 
 ]).

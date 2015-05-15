@@ -1,0 +1,43 @@
+#!/usr/bin/env escript
+
+main([Destination]) ->
+    Files = collect_files(search_path(), []),
+    copy_files(Files, ".", Destination);
+
+main(_) ->
+    usage(),
+    halt(1).
+
+usage() ->
+    io:format("release.script \n").
+
+search_path() ->
+    Entities = filelib:wildcard("./deps/*/ebin") ++ filelib:wildcard("./deps/*/include") ++ filelib:wildcard("./deps/*/priv"),
+    ["./start.bat", "./start.sh", "./config", "./deps", "./include", "./ebin", "./priv"|Entities].
+
+
+collect_files([], Acc) -> Acc;
+collect_files([F|R], Acc) ->
+    case filelib:is_dir(F) of
+        true ->
+            {ok, Names} = file:list_dir(F),
+            Entities = lists:map(fun(Name) -> filename:join(F, Name) end, Names),
+            {Folders, Files} = lists:partition(fun(Name) -> filelib:is_dir(Name) end, Entities),
+            collect_files(Folders ++ R, Files ++ Acc);
+        false ->
+            collect_files(R, [F|Acc])
+    end.
+
+copy_files([], _Source, _Destination) -> completed;
+copy_files([F|R], Source, Destination) ->
+    DestinationPath = filename:join(Destination, lists:nthtail(length(Source) + 1, F)),
+    case filelib:ensure_dir(DestinationPath) of
+        ok ->
+            case file:copy(F, DestinationPath) of
+                {ok, _} -> success;
+                {error, Reason} -> io:format("Warning ~p~n", [Reason])
+            end;
+        {error, Reason} -> io:format("Warning ~p~n", [Reason])
+    end,
+    copy_files(R, Source, Destination).
+
