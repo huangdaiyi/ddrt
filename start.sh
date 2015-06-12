@@ -1,2 +1,5 @@
 BASE="$(cd `dirname $0`; pwd)"
-erl -args_file "$BASE/config/vm.args" -config "$BASE/config/sys.config"
+
+CONFIG="-sname ddrt -setcookie ddrt_dev +K true -kernel error_logger silent -pa $BASE/ebin -pa $BASE/deps/neg_hydra/ebin -s neg_hydra"
+
+erl $CONFIG -config "$BASE/config/sys.config"
