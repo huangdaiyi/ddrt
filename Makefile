@@ -1,8 +1,8 @@
 PREFIX:=../
 DEST:=$(PREFIX)$(PROJECT)
 
-REBAR=./rebar
 RELEASE=./release.script
+REBAR=rebar
 
 .PHONY: all edoc test clean build_plt dialyzer app release
 
