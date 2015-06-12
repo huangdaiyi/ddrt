@@ -1,7 +1,7 @@
 PREFIX:=../
 DEST:=$(PREFIX)$(PROJECT)
 
-REBAR=./rebar
+REBAR=rebar
 
 .PHONY: all edoc test clean build_plt dialyzer app
 
