@@ -86,7 +86,13 @@ send(RemindTime, SendTime, Timespan) ->
 			send_mail(),
 			{ok, Timespan};
 
-		true -> {ok, Timespan}
+		true -> 
+			RestRemindTime =  RemindTime - Minutes,
+			if 
+				RestRemindTime < Timespan andalso RestRemindTime > 0 ->  
+					{ok, RestRemindTime};
+				true -> {ok, Timespan}
+			end
 	end.
 
 
