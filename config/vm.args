@@ -4,4 +4,7 @@
 -kernel error_logger silent
 -pa ebin 
 -pa deps/neg_hydra/ebin
+-pa deps/erlydtl/ebin
+-pa deps/eunit_formatters/ebin
+-pa deps/merl/ebin
 -s neg_hydra

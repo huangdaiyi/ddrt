@@ -1,3 +1,0 @@
-{% extends "base" %}
-
-{% block title %}base c{% endblock %}

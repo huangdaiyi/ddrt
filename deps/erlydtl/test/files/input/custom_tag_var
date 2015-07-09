@@ -1,3 +1,0 @@
-{% custom1_var as tagvar %}
-{{ tagvar.name }}
-{{ tagvar.count }}

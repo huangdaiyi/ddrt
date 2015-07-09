@@ -1,6 +1,0 @@
-{% extends "base_escape" %}
-
-{% block my_block %}
-    {{ block.super }}
-    <p>B</p>
-{% endblock %}

@@ -1,8 +1,0 @@
-{% extends "base_for" %}
-{% block forloop %}
-<ul>
-{% for iterator in veggie_list %}
-<li>{{ iterator }}</li>
-{% endfor %}
-</ul>
-{% endblock %}
