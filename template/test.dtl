@@ -1,0 +1,72 @@
+
+{"regroup .. endregroup",
+[{"Ordered",
+  <<"{% regroup people by gender as gender_list %}
+		{% for gender in gender_list %}
+			{{ gender.grouper }}
+			{% for item in gender.list %}
+				{{ item.first_name }}
+			{% endfor %}
+		{% endfor %}
+	{% endregroup %}">>,
+        [{people, [[{first_name, "George"}, {gender, "Male"}], [{first_name, "Bill"}, {gender, "Male"}],
+                   [{first_name, "Margaret"}, {gender, "Female"}], [{first_name, "Condi"}, {gender, "Female"}]]}],
+        <<"Male\nGeorge\nBill\nFemale\nMargaret\nCondi\n">>},
+
+
+       {"Unordered",
+        <<"{% regroup people by gender as gender_list %}
+		{% for gender in gender_list %}
+			{{ gender.grouper }}
+			{% for item in gender.list %}
+				{{ item.first_name }}
+			{% endfor %}
+		{% endfor %}
+	{% endregroup %}">>,
+        [{people, [[{first_name, "George"}, {gender, "Male"}],
+                   [{first_name, "Margaret"}, {gender, "Female"}],
+                   [{first_name, "Condi"}, {gender, "Female"}],
+                   [{first_name, "Bill"}, {gender, "Male"}]
+                  ]}],
+        <<"Male\nGeorge\nFemale\nMargaret\nCondi\nMale\nBill\n">>},
+
+       {"NestedOrdered",
+        <<"{% regroup people by name.last as lastname_list %}{% for lastname in lastname_list %}{{ lastname.grouper }}\n{% for item in lastname.list %}{{ item.name.first }}\n{% endfor %}{% endfor %}{% endregroup %}">>,
+        [{people, [[{name, [{first,"George"},{last,"Costanza"}]}],
+                   [{name, [{first,"Margaret"},{last,"Costanza"}]}],
+                   [{name, [{first,"Bill"},{last,"Buffalo"}]}],
+                   [{name, [{first,"Condi"},{last,"Buffalo"}]}]]}],
+        <<"Costanza\nGeorge\nMargaret\nBuffalo\nBill\nCondi\n">>},
+       {"NestedUnordered",
+        <<"{% regroup people by name.last as lastname_list %}{% for lastname in lastname_list %}{{ lastname.grouper }}\n{% for item in lastname.list %}{{ item.name.first }}\n{% endfor %}{% endfor %}{% endregroup %}">>,
+        [{people, [[{name, [{first,"George"},{last,"Costanza"}]}],
+
+
+"{% regroup report by gender as gender_list %}
+  {% for gender in gender_list %}
+    {{ gender.grouper }}:\n
+    {% for person in gender.list %} 
+      - {{ person.first_name }}\n
+    {% endfor %}
+  {% endfor %}"
+
+  #test{
+          title = "regroup record",
+          source = <<"
+          {% regroup people by gender as gender_list %}
+            {% for gender in gender_list %}
+            {{ gender.grouper }}
+              {% for person in gender.list %}
+                {{ person.first_name }}
+              {% endfor %}
+              {% endfor %},
+
+          compile_opts = [{record_info, [{person, record_info(fields, person)}]} | (#test{})#test.compile_opts],
+          render_vars = [{people, [#person{ first_name = "George", gender = "Male" },
+                                   #person{ first_name = "Bill", gender = "Male" },
+                                   #person{ first_name = "Margaret", gender = "Female" },
+                                   #person{ first_name = "Condi", gender = "Female" }
+                                  ]}
+                        ],
+          output = <<"Male:\n - George\n - Bill\nFemale:\n - Margaret\n - Condi\n">>
+         }

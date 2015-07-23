@@ -7,3 +7,11 @@ Have some primes:
 {% for i in primes %}
    {{ i }}
 {% endfor %}
+
+test reports:
+{% for k,v in reports %}
+	{{k}}
+		{%  for d  in v %}
+   			 value: {{ d }}
+   		{% endfor %}
+{% endfor %}

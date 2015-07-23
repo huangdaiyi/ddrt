@@ -10,7 +10,7 @@ start_link() ->
     supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 
 init([]) ->
-    _Server = {ddrt_timer, {ddrt_timer, start_link, []}, permanent, 2000, worker, [ddrt_timer]},
+    %_Server = {ddrt_timer, {ddrt_timer, start_link, []}, permanent, 2000, worker, [ddrt_timer]},
     Sup = {ddrt_group_sup, {ddrt_group_sup, start_link, []}, permanent, 2000, supervisor, [ddrt_group_sup, ddrt_sup]},
     Manager = {ddrt_group_manager, {ddrt_group_manager, start_link, []}, permanent, 2000, worker, [ddrt_group_manager]},
     Processes = [Sup, Manager],

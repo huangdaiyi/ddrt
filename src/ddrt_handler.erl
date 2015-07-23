@@ -1,25 +1,66 @@
 -module (ddrt_handler).
 -author("benjamin.c.yan@newegg.com").
 -export([request/4,responsed/2]).
--include ("include/ddrt.hrl").
+-include("include/ddrt.hrl").
+
+-define(LOGIN_PAGE, "/login.html").
 
 %%%================================================
 %%% request callback
 %%%================================================
-request(get, Paths, DocRoot, Req) ->
-    do_get([string:to_lower(P) || P <- Paths], DocRoot, Req);
+% request(get, Paths, DocRoot, Req) ->
+%     do_get([string:to_lower(P) || P <- Paths], DocRoot, Req);
 
-request(post, Paths, DocRoot, Req) ->
-    do_post([string:to_lower(P) || P <- Paths], DocRoot, Req);
+% request(post, Paths, DocRoot, Req) ->
+%     do_post([string:to_lower(P) || P <- Paths], DocRoot, Req);
 
-request(put, Paths, DocRoot, Req) ->
-    do_put([string:to_lower(P) || P <- Paths], DocRoot, Req);
- 
-request(head, Paths, DocRoot, Req) ->
-    do_head([string:to_lower(P) || P <- Paths], DocRoot, Req).
+% request(put, Paths, DocRoot, Req) ->
+%     do_put([string:to_lower(P) || P <- Paths], DocRoot, Req);
+
+% request(delete, Paths, DocRoot, Req) ->
+%     do_delete(Paths, DocRoot, Req);
+
+% request(head, Paths, DocRoot, Req) ->
+%     do_head([string:to_lower(P) || P <- Paths], DocRoot, Req).
     
 responsed(_Code, _Req) ->
     ok.
+
+request(Method, Paths, DocRoot, Req) ->
+    SafePaths = [string:to_lower(P) || P <- Paths],
+    try 
+        validate(Method, SafePaths, DocRoot, Req),
+        case Method of
+            get    -> do_get   (SafePaths, DocRoot, Req);
+            post   -> do_post  (SafePaths, DocRoot, Req);
+            put    -> do_put   (SafePaths, DocRoot, Req);
+            delete -> do_delete(SafePaths, DocRoot, Req);
+            head   -> do_head  (SafePaths, DocRoot, Req);
+            _Other -> {404, [], <<>>}
+
+        end
+    catch
+        throw:{termination, StatusCode, Headers, Body} ->
+            {StatusCode, Headers, ddrt_utils:string_to_binary(Body)}
+    end.
+    
+
+validate(Method, SafePaths, _DocRoot, Req) ->
+    case {Method, SafePaths} of
+        {get, P} when P =:=[]; P =:= ["index.html"] ->
+            check_login_jira(Req);
+        _Any ->
+            ok
+    end.
+
+check_login_jira(Req) ->
+    case ddrt_jira:login_info(Req) of
+        {200, _, Content} ->
+             Content;
+        _ ->
+            throw({termination, 401,  [], <<>>})
+            %throw({termination, 302,  [{"Location", Page},{"Content-Type", "text/html; charset=UTF-8"}], <<>>})
+    end.
 
 
 %%%================================================
@@ -47,6 +88,21 @@ do_get(["api", "v1", "db", "refresh"], _DocRoot, _Req) ->
         Pid -> erlang:exit(Pid, kill)
     end,
     {200, [{"Content-Type", "text/plain"}], ""};
+
+do_get(["api", "v1", "jira", "project"], _DocRoot, Req) ->
+    ddrt_jira:project(Req);
+
+do_get(["api", "v1", "jira", "login"], _DocRoot, Req) ->
+    ddrt_jira:login_info(Req);
+
+do_get(["api", "v1", "jira", "user"], _DocRoot, Req) ->
+    {ok, {obj, Data}, _} = rfc4627:decode(check_login_jira(Req)),
+    Username = proplists:get_value("name", Data),
+    ddrt_jira:user_info(binary_to_list(Username), Req);
+
+do_get(["api", "v1", "jira", "status"], _DocRoot, Req) ->
+    ddrt_jira:get_all_status(Req);
+
 do_get(_Any, _DocRoot, _Req) ->
     {404, [], <<>>}.
         
@@ -54,8 +110,66 @@ do_get(_Any, _DocRoot, _Req) ->
 %%%================================================
 %%% post request
 %%%================================================
+do_post(["api", "v1", "jira", "login"], _DocRoot, Req) ->
+    %{obj, Data} = Req:json_body(),
+    Data = Req:call(parse_post),
+    Username = proplists:get_value("username", Data),
+    Password = proplists:get_value("password", Data),
+    {StatusCode, Headers, Content} = ddrt_jira:login(Username, Password, Req),
+    case {StatusCode, proplists:get_value("info", Data)} of
+        {200, Info} when Info =:= "true"; Info =:= true ->
+            {200, _, UserInfo} = ddrt_jira:user_info(Username, [ddrt_jira:parse_cookie(Headers)]),
+            {StatusCode, Headers, UserInfo};
+        _ ->
+            {StatusCode, Headers, Content}
+    end;
+
+do_post(["api", "v1", "jira", "search"], _DocRoot, Req) ->
+    {obj, Data} = Req:json_body(),
+    Params1 = [{jql, proplists:get_value("jql", Data)}, {startAt, proplists:get_value("startAt", Data, 0)},
+        {maxResults, proplists:get_value("maxResults", Data, 500)}],
+    Params2 = case proplists:get_value("fields", Data) of
+        undefined -> Params1;
+        F -> [{fields, F} | Params1]
+    end,
+    ddrt_jira:search(Params2, Req);
+
+do_post(["api", "v1", "jira", "worklog"], _DocRoot, Req) ->
+    {obj, Data} = Req:json_body(),
+    %%[{Data, _}] = Req:call(parse_post),
+    Email = case proplists:get_value("email", Data) of
+        undefined ->
+            throw({termination, 400, [], <<"email error">>});
+        E -> E
+    end,
+    UserID = case ddrt_db:get_user_by_email(Email) of
+        [#userentity{id=Id}] -> Id;
+        [] -> throw({termination, 403,  [], <<"user not exist">>})
+    end,
+    Reports = proplists:get_value("reports", Data),
+    case ddrt_db:check_today_report(UserID) of
+        [] ->
+            case ddrt_jira:worklog(Reports, Req) of
+                ok ->  
+                    Content = ddrt_utils:format_data_line(proplists:get_value("content", Data, "")),
+                    Datetime = proplists:get_value("datetime", Data, calendar:local_time()),
+                    case ddrt_db:add_report([UserID, Content, Datetime]) of
+                        ok -> {200, [], <<"Success">>};
+                        _ -> {500, [], <<"Failed">>}
+                    end;
+                {error, Code} -> {Code, [], <<"worklog jira error">>}
+            end;
+        _Any -> {200, [], <<"You have already submitted">>}
+    end;
+    % {ok, Data2, _} = rfc4627:decode(Data1),
+    % case ddrt_jira:worklog(Data2, Req) of
+    %     ok ->        
+    % end 
+
+    
 do_post(_Any, _DocRoot, _Req) ->
     {404, [], <<>>}.
+
 
 
 %%%================================================
@@ -97,7 +211,7 @@ do_put(["api", _V, "report"], _DocRoot, Req) ->
     end;
 
 do_put(["api", "v1","adduser"], _DocRoot, Req) ->
-    {obj,Data} = Req:json_body(),
+    {obj, Data} = Req:json_body(),
     Email = proplists:get_value("email", Data, ""),
     Type = proplists:get_value("type", Data, ""),
     EmailStr=binary_to_list(Email),
@@ -111,6 +225,18 @@ do_put(["api", "v1","adduser"], _DocRoot, Req) ->
 
 do_put(_, _DocRoot, _Req) ->
     {404, [], <<>> }.
+
+
+
+%%%================================================
+%%% put request
+%%%================================================
+do_delete(["api", "v1", "jira", "login"], _DocRoot, Req) ->
+    ddrt_jira:login_out(Req);
+do_delete(_, _DocRoot, _Req) ->
+    {404, [], <<>> }.
+    
+
 
 
 %%%================================================

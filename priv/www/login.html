@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>DDRR Login</title>
+<style type="text/css">
+   body {
+    background-color: #F8F8F8;
+    color : #000;
+    margin: 0px;
+    text-align: center;
+}
+
+#page {
+    background-color: #F8F8F8;
+    text-align: left;
+    margin:0px auto;
+    padding: 15px;
+    width: 800px;
+    font-family: "Trebuchet MS", Verdana, Arial, Helvetica, sans-serif;
+    width: 800px;
+    text-align: center;
+}
+
+#login {
+    border: 6px solid #999;
+    width: 500px;
+    margin: auto;
+    background-color: white;
+}
+
+#login legend {
+    font-size: 36px;
+    font-weight: bold;
+}
+
+#login .input {
+    font-family: Verdana,Arial,Helvetica,Geneva,sans-serif;
+    font-size:18px;
+    padding:2px;
+    color: green;
+}
+
+#login .label {
+    font-size: 18px;
+}
+
+#login .button, .button {
+    font-size: 22px;
+    height: 32px;
+    font-family: "Helvetica Neue",Arial,Helvetica,Geneva,sans-serif;
+    /*font:bold 100% "Helvetica Neue",Arial,Helvetica,Geneva,sans-serif;*/
+    -webkit-appearance:button;
+}
+
+.login_table_left {
+}
+
+.hint {
+    font-size: 80%;
+    color: #999;
+}
+
+.whitelist {
+    width: 500px;
+    margin: auto;
+    background-color: white;
+    margin-top: -50px;
+    margin-bottom: 20px;
+    padding: 10px;
+    border: 1px solid #999;
+}
+
+input[type="number"].no-spin-button {
+  -moz-appearance: textfield;
+}
+
+input[type="number"].no-spin-button::-webkit-inner-spin-button,
+input[type="number"].no-spin-button::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+</style>
+<script src="js/jquery.js"></script>
+<script src="js/jquery.form.js"></script>
+<script src="js/jquery.validate.min.js"></script>
+<script type="text/javascript">
+
+    $(document).ready(function(){      
+        $('#LoginForm').validate({
+            rules: {
+                username: {
+                    minlength: 4,
+                    maxlength: 20, 
+                    required: true
+                },
+                password: {
+                    minlength: 6,
+                    maxlength: 16, 
+                    required: true
+                }
+            },
+
+            errorElement: 'span',
+            errorClass: 'help-block',
+            highlight: function(element) {
+                //console.log("error");
+                //$(element).closest('.form-group').addClass('has-error');
+            },
+            unhighlight: function(element) {
+                 //console.log("ok");
+                //$(element).closest('.form-group').removeClass('has-error');
+            },
+            errorPlacement: function(error,element){
+                element.parent().parent().next().find("td").append(error);
+            }
+
+        });
+
+
+        $('#LoginForm').submit(function(){
+            var loginForm$ = $(this);
+            if(!loginForm$.valid()){
+                return false;
+            }
+            console.log("form submit");
+            var options = {
+                type: 'post',
+                success: showResponse,
+                //resetForm: true,
+                //clearForm: true,
+                timeout: 3000
+            };
+
+            loginForm$.ajaxSubmit(options);
+
+            return false;
+        });
+
+        $("#get_project").on("click", function(){
+           $.getJSON("api/v1/jira/project", function(data){
+                console.log(JSON.stringify(data));
+           });
+        });
+
+
+        $("#user_info").on("click", function(){
+           $.getJSON("api/v1/jira/user", function(data){
+                console.log(JSON.stringify(data));
+           });
+        });
+
+        $("#jira_login_out").on("click", function(){
+            sendDelete("api/v1/jira/login", {"content-type":"application/json"}, function(){
+                console.log("login out ok!")
+            });
+        });
+
+        // $("#get_project").on("click", function(){
+        //    $.getJSON("http://jira/rest/api/2/project", function(data){
+        //         console.log(JSON.stringify(data));
+        //    });
+        // });
+
+
+        // $("#user_info").on("click", function(){
+        //    $.getJSON("http://jira/rest/auth/1/session", function(data){
+        //         console.log(JSON.stringify(data));
+        //    });
+        // });
+
+
+        // $("#jira_login").on("click", function(){
+        //    send("http://jira/rest/auth/1/session","POST",{"content-type":"application/json", "Access-Control-Allow-Origin":"*"} ,{username:"hh49",password:"hdy@123123"}, function(data){
+        //         console.log(JSON.stringify(data));
+        //    });
+        // });
+    });
+
+    var showResponse =  function(responseText, statusText){
+       window.location.href = "/logwork.html"
+    };
+
+    var sendDelete = function(url, headers, success_call){
+                $.ajax({
+                      type: "DELETE",
+                      url: url,
+                      cache:false,
+                      dataType:"json",
+                      headers:headers,
+                      success: success_call
+                  }); 
+             };
+
+    var send = function(url, method, headers, data, success_call){
+                $.ajax({
+                      type: method,
+                      url: url,
+                      cache:false,
+                      dataType:"json",
+                      headers:headers,
+                      data:data,
+                      success: success_call
+                  }); 
+             };
+
+    // ;(function($) {
+    //     $.fn.ddrt_login = function(username, password){
+    //         this.postData = {};
+    //         this.postData.username = username;
+    //         this.password.password = password;
+    //         this.login_url = "api/v1/jira/login";//"http://jira/rest/auth/1/session";
+
+    //         var send = function(data, method){
+    //                     $.ajax({
+    //                           type: Method,
+    //                           url: this.login_url,
+    //                           cache:false,
+    //                           dataType:"json",
+    //                           headers:{"content-type":"application/json"}
+    //                           data:data,
+    //                           success: function(msg){
+    //                               console.log("send success!");
+    //                               console.log(msg);
+    //                           }
+    //                       }); 
+    //                  };
+    //         this.login = function(){
+    //             send(JSON.stringify(postData), "POST");
+    //         };
+
+
+    //     }
+        
+    // })(jquery);
+</script>
+</head>
+<body>
+<div id="page" style="width: 800px; text-align: center; background-color: #F8F8F8">
+    
+
+<br><br><br>
+<br><br><br>
+
+<form role="form" name="LoginForm" id="LoginForm" action="api/v1/jira/login" method="post">
+    <fieldset id="login">
+        <legend>DDRT Manager</legend>
+        <table width="100%" cellspacing="10">
+            <tr class="login_table_left">
+                <td width="100" align="right" class="label">Username</td>
+                <td> <input name="username" id="username"  type="text" maxlength="32"  autofocus="autofocus"  class="input"  tabindex="1"  size="24"  border="0"  /> </td>
+            </tr>
+            <tr><td colspan="2"></td></tr>
+            <tr class="login_table_left">
+                <td width="100" align="right" class="label">Password</td>
+                <td> <input name="password" id="password"  type="password" maxlength="128"  tabindex="2"  class="input"  size="24"  border="0"  /> </td>
+            </tr>
+            <tr><td colspan="2"></td></tr>
+        </table>
+
+        <input class="button" type="submit" value="Log in" style="margin-top: 10px"> or <a href="http://jira/secure/Signup!default.jspa">sign up</a>
+        <p class="hint" style="margin-bottom: 0px">Cookies must be enabled</p>
+    </fieldset>
+</form>
+
+<input type="button" value="jira_login_out"  id = "jira_login_out"/>
+<input type="button" value="get projects"  id = "get_project"/>
+<input type="button" value="user info"  id = "user_info"/>
+
+</div>
+</body>
+</html>

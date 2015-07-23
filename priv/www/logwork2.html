@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="X-UA-Compatible" content="IE=10">
+        <title>Daily Report Manager</title>
+        <!-- Bootstrap -->
+        <link href="css/bootstrap.min.css" rel="stylesheet" type="text/css">
+        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 10]>
+        <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+        <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+        <![endif]-->
+        <script src="js/jquery.js"></script>
+        <script src="js/bootstrap.min.js"></script>
+        <!-- Validate Plugin -->
+        <script src="js/jquery.validate.min.js" type="text/javascript"></script>
+
+        <style type="text/css">
+            .margin-top-05 { margin-top: 0.5em; }
+            .margin-top-10 { margin-top: 1.0em; }
+            .margin-top-15 { margin-top: 1.5em; }
+            .margin-top-20 { margin-top: 2.0em; }
+
+            .padding-05 { padding: 0.5em }
+            .padding-10 { padding: 1.0em }
+            .padding-15 { padding: 1.5em }
+            .padding-20 { padding: 2.0em }
+
+            .font-bold {font-weight: 700}
+            .top-buffur {top: 8em}
+            fieldset.scheduler-border {
+                border: 1px groove #ddd !important;
+                padding: 0 1.4em 1.4em 1.4em !important;
+                margin: 0 0 1.5em 0 !important;
+                -webkit-box-shadow:  0px 0px 0px 0px #000;
+                        box-shadow:  0px 0px 0px 0px #000;
+            }
+            textarea{ resize: none;}
+            img {vertical-align: text-top;}
+
+            legend.scheduler-border {
+                font-size: 1.2em !important;
+                font-weight: bold !important;
+                text-align: left !important;
+                width:auto;
+                padding:0 10px; 
+                border-bottom:none;
+
+            }
+
+            #loginDialog {
+                position: absolute;
+                top: 15%;
+                left: 50%;
+                margin-left: -200px;
+                padding: 20px;
+            }
+
+             #loginDialog div.modal-content{
+                width: 400px;
+                background-color: #eee;
+            }
+
+            body {
+              padding-bottom: 40px;
+              background-color: #eee;
+            }
+
+            .form-signin {
+              max-width: 330px;
+              padding: 15px;
+              margin: 0 auto;
+            }
+            .form-signin .form-signin-heading,
+            .form-signin .checkbox {
+              margin-bottom: 10px;
+            }
+            .form-signin .checkbox {
+              font-weight: normal;
+            }
+            .form-signin .form-control {
+              position: relative;
+              height: auto;
+              -webkit-box-sizing: border-box;
+                 -moz-box-sizing: border-box;
+                      box-sizing: border-box;
+              padding: 10px;
+              font-size: 16px;
+            }
+            .form-signin .form-control:focus {
+              z-index: 2;
+            }
+            .form-signin input[type="email"] {
+              margin-bottom: -1px;
+              border-bottom-right-radius: 0;
+              border-bottom-left-radius: 0;
+            }
+            .form-signin input[type="password"] {
+              margin-bottom: 10px;
+              border-top-left-radius: 0;
+              border-top-right-radius: 0;
+            }
+            .has-error{
+                border: 1px solid red;
+            }
+
+            .bottom-border {
+                border: none;
+                border-bottom: 1px solid #666;
+                outline: none;
+                height: 24px
+            }
+
+        </style>
+    </head>
+    <body>
+   <!--  <form role="form" id="form" method="put" action="api/v1/report">
+    </form> -->
+
+
+        <div class="container panel panel-primary margin-top-10">
+            <div class="row panel-heading">
+                <div class="col-sm-4 text-left">
+                    <h4 class="panel-title"> DDRT Log Work</h4>
+                </div>
+                <div class="col-sm-8 text-right">
+                    <p id="reportTitle" class="panel-title">
+                        <img id="useravatar" src="http://jira/secure/useravatar?size=small&avatarId=10122" />
+                        <a href="javascript:void(0)" class="font-bold">hh49</a>&nbsp;&nbsp;
+                        <a id="loginOut" href="javascript:void(0)">Logout</a>
+                    </p>
+                </div>
+            </div>
+            <div class="row panel margin-top-10">
+                <div class="col-sm-4">
+                    <div class="input-group">
+                        <span class="input-group-addon font-bold">Projects</span>
+                        <select id="selProject" class="form-control">
+                            <option value="-1">new ...</option>
+                            <option value="0" selected="selected">select project</option>
+                            <option value="1">project 1</option>
+                            <option value="2">project 2</option>
+                            <option value="3">project 3</option>
+                            <option value="4">project 4</option>
+                            <option value="5">project 5</option>
+                        </select>
+                    </div>
+                </div>
+                <!-- <div class="col-sm-4">
+                    <div class="input-group">
+                        <span class="input-group-addon font-bold">Issues</span>
+                        <select id="sel-group" class="selectpicker form-control" data-val="0" title="Please select a group ...">
+                            <option value="-1">new ...</option>
+                            <option value="0" selected="selected">select Issues</option>
+                            <option value="1">Issue 1</option>
+                            <option value="2">Issue 2</option>
+                            <option value="3">Issue 3</option>
+                            <option value="4">Issue 4</option>
+                            <option value="5">Issue 5</option>
+                        </select>
+                    </div>
+                </div> -->
+               <!--  <div class="col-sm-4 col-sm-offset-2">
+                    <div class="input-group">
+                        <span class="input-group-addon font-bold">Email</span>
+                        <select id="selEmail" class="form-control">
+                            <option value="-1">new ...</option>
+                            <option value="0" selected="selected">select Email</option>
+                            <option value="1">Email 1</option>
+                            <option value="2">Email 2</option>
+                            <option value="3">Email 3</option>
+                            <option value="4">Email 4</option>
+                            <option value="5">Email 5</option>
+                        </select>
+                    </div>
+                </div> -->
+            </div>
+            <div class="row">
+                <div class="col-sm-12">
+                   <!--  <div class="alert alert-success" role="alert"  id="success">
+                        <p class="text-center" id="success-content"></p>
+                    </div> -->
+                    <!-- <div class="row">
+                        <div class="col-sm-7">
+                            <label class="control-label" >Report Content</label>
+                        </div>
+                        <div class="col-sm-3">
+                            <label class="control-label" >Issue</label>
+                        </div>
+                        <div class="col-sm-2">
+                            <label class="control-label" >Time Spent</label>
+                        </div>
+                    </div> -->
+                    <fieldset id="reports" class="scheduler-border form-group" >
+                        <legend class="scheduler-border">
+                            <label class="control-label">Report Content
+                                <button id="add_report" type="button" class="btn btn-default btn-xs font-bold" title="add a report" >    +
+                                </button>
+                            </label>
+                        </legend>
+                        <div name = "item" class="row form-group">
+                            <div class="col-sm-8">
+                                <!-- <button class="input-group-addon font-bold">X</button> -->
+                                <textarea class="form-control" rows="4" placeholder="Enter your today's report" name="content" ></textarea>
+                            </div>
+                            <div class="col-sm-4">
+                                <div class="row form-group">
+                                    <!-- <div class="col-sm-2">
+                                        <i class="font-bold">Issues:</i>
+                                    </div> -->
+                                    <div class="col-sm-12">
+                                        <!-- <div class="input-group">
+                                            <span class="input-group-addon font-bold">Issues</span>
+                                            <select id="sel-group" class="selectpicker form-control" data-val="0" title="Please select a group ...">
+                                                <option value="-1">new ...</option>
+                                                <option value="0" selected="selected">select Issues</option>
+                                                <option value="1">Issue 1</option>
+                                                <option value="2">Issue 2</option>
+                                                <option value="3">Issue 3</option>
+                                                <option value="4">Issue 4</option>
+                                                <option value="5">Issue 5</option>
+                                            </select>
+                                        </div> -->
+                                        <!-- <div class="bottom-border">
+                                            <input class="btn btn-default btn-sm font-bold" type="button" value="Choose Issue" />
+                                        </div> -->
+                                         <i>Issue:</i> <input class="bottom-border font-bold" type="text" />
+                                    </div>
+
+                                </div>
+
+                                <div class="row form-group">
+                                    <div class="col-sm-10">
+                                        <!-- <div class="input-group">
+                                            <span class="input-group-addon font-bold">Time Span</span>
+                                            <input type="text" class="form-control"  value="8" id="exampleInputAmount" placeholder="hours">
+                                        </div> -->
+                                        <i class="">Time Spent:</i> <input class="bottom-border font-bold" type="text" /><i>h</i>
+                                    </div>
+                                       
+                                    <div class="col-sm-2"><button name="close" title="remove this report" class="btn btn-default btn-sm">X</button></div>
+                                </div>
+                            </div>
+                            <!-- <div class="col-sm-1"><button name="close" title="remove this report" class="btn btn-default">X</button></div> -->
+                        </div>
+                    </fieldset>
+                </div>
+                <div class="col-sm-2 col-sm-offset-5 form-group">
+                    <button type="submit" class="btn btn-primary btn-lg btn-block">Submit</button>
+                </div>
+            </div> 
+        </div>
+
+        <!-- Button trigger modal -->
+       <!--  <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal">
+          Launch login modal
+        </button> -->
+        <!-- Modal -->
+
+        <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+          <div id="loginDialog" class="modal-dialog" role="document">
+            <div  class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" aria-label="Close"><span aria-hidden="true">::</span></button>
+                <h4 class="modal-title" id="myModalLabel">Please sign in</h4>
+              </div>
+              <div class="modal-body">
+
+                <form id="loginForm" class="form-signin" role="form" action="api/v1/jira/login" method="post">
+                    <label for="username" class="sr-only">Username</label>
+                    <input type="text" name="username" id="username" class="form-control" placeholder="Username" required autofocus>
+                    <label for="inputPassword" class="sr-only">Password</label>
+                    <input type="password" name="password" id="password" class="form-control" placeholder="Password" required>
+                    <input type="hidden" name="info" value="true" />
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox" value="remember-me" /> Remember me
+                      </label>
+                    </div>
+                    <input id="loginBtn" class="btn btn-lg btn-primary btn-block" type="submit" value="Sign in" />
+                </form> 
+
+              </div>
+              <!-- <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary">Sign in</button>
+              </div> -->
+            </div>
+          </div>
+        </div>
+
+
+        <script type="text/javascript">
+            // ;(function($){
+            //     worklog = {
+            //         reportElements:{},
+
+            //         addReport:
+
+            //         // reportWrap: function(){
+            //         //     return $("#reports");
+            //         // },
+
+            //         // addReport: function
+            //         // 
+            //         init(){
+            //             reportElements.reportWrap = $("#reports");
+            //             reportElements.addBtn = $("#add_report");
+            //             reportElements.
+            //         }
+            //     };
+            // })(JQuery);
+            // 
+            $(document).ready(function(){
+                $('#loginForm').validate({
+                    rules: {
+                        username: {
+                            minlength: 4,
+                            maxlength: 20, 
+                            required: true
+                        },
+                        password: {
+                            minlength: 6,
+                            maxlength: 16, 
+                            required: true
+                        }
+                    },
+
+                    errorElement: 'span',
+                    errorClass: 'help-block',
+                    highlight: function(element) {
+                        //console.log("error");
+                        $(element).addClass('has-error');
+                    },
+                    unhighlight: function(element) {
+                        //console.log("ok");
+                        $(element).removeClass('has-error');
+                    },
+                    submitHandler:function(form){
+                        var loginForm$ = $(form);
+                        
+                         $.ajax({
+                            url: loginForm$.attr("action"),
+                            method:"POST", 
+                            dataType: "json",
+                            cache:false,
+                            data:loginForm$.serialize(),
+                            success: function(data, status, xhr){
+                                setUser(data);
+                            },
+                           
+                        });
+
+                        return false;
+                    }
+
+                });
+
+                initUser();
+            });
+            
+
+            $("#add_report").on("click", function() {
+                var fieldset$ = $("#reports");
+                var cloneItem = fieldset$.children("div.row").last().clone();
+                fieldset$.append("<hr />");
+                cloneItem.appendTo(fieldset$);
+            });
+
+            $("#reports").on("click", "button[name=close]", function(e){
+                var rself$ = $(this);
+                var reports = $("#reports").children("div.row");
+                if (reports.size() <= 1) {
+                    alert("At least one report");
+                    return;
+                };
+                var wrap$ = rself$.closest("div[name=item]");
+                wrap$.fadeOut("slow", function(){
+                    hr$ = wrap$.prev("hr");
+                    if (hr$) {
+                        hr$.remove();
+                    }
+                    if (reports.index(wrap$) === 0) {
+                        wrap$.next().remove();
+                    }
+                    wrap$.remove();
+                });
+            });
+
+            var sendDelete = function(url, headers, success_call){
+                $.ajax({
+                      type: "DELETE",
+                      url: url,
+                      cache:false,
+                      dataType:"json",
+                      headers:headers,
+                      success: success_call
+                  }); 
+             };
+
+            $("#loginOut").on("click", function(){
+                sendDelete("api/v1/jira/login", {"content-type":"application/json"}, function(){
+                    window.location.href = "/login.html";
+                });
+            });
+
+            var initUser = function(){
+                $.ajax({
+                    url: "/api/v1/jira/user",
+                    method:"GET", 
+                    dataType: "json",
+                    success:setUser,
+                    error: function(jqXHR){
+                        $("#myModal").modal({'backdrop':'static', 'keyboard':false});
+                    }
+                    
+                });
+            };
+
+            var setUser = function(data){
+                var titlePanle$ = $("#reportTitle");
+                titlePanle$.find("img").attr("src", data.avatarUrls["16x16"]).next().html(data.displayName);
+                $("#myModal").modal("hide");
+            }
+
+        </script>
+
+        
+    </body>
+</html>

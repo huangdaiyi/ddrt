@@ -1,0 +1,22 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <title>{{title}}</title>
+</head>
+<body style="color:#0099CC">
+  <p>
+    Dear {{user}},
+    <br/>
+    <br/>
+    <Strong>
+      Please
+      <a href="{{report_url}}" >submit</a>
+      daily reports in a timely manner(Before {{send_time}}).</strong> 
+  </p>
+  <p style="font-style: italic;">
+    Cheers,
+    <br/>
+    DDRT
+  </p
+</body>
+</html>
