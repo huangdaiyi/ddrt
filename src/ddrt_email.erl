@@ -100,23 +100,20 @@ get_report_days(_Day, 0, Acct) -> Acct;
 get_report_days(Day, Num, Acct) ->
     get_report_days(Day - 1, Num - 1, [Day | Acct]).
 
+flatten_reports_by_day(Reports) ->
+  lists:foldl(fun(#report_mode{date = Date} = R, Acct) ->
+      Key = ddrt_utils:get_days(Date),
+      dict:update(ddrt_utils:get_days(Date), 
+        fun(V) -> V#report_mode{content = V#report_mode.content ++ "<br />" ++ "<b>"++ R#report_mode.issue ++<"/b> <br />" ++ R#report_mode.content} end,
+        R#report_mode{content = "<b>" ++ R#report_mode.issue ++<"/b> <br />" ++ R#report_mode.content}, Acct)
+  end, dict:new(), Reports).
+
 fill_reports(Reports, User, Days) ->
-    NewReports = if length(Reports) =:= length(Days) ->
-                        Reports;
-                    true ->
-                        lists:foldl(fun (Day, Acct) ->
-                                            case lists:any(fun
-                                                             (#report_mode{date
-                                                                               =
-                                                                               Date}) ->
-                                                                 ddrt_utils:get_days(Date)
-                                                                   =:= Day;
-                                                             (_Any) -> false
-                                                           end,
-                                                           Reports)
-                                                of
-                                              true -> Acct;
-                                              false ->
+    FlattenReports = flatten_reports_by_day(Reports),
+    NewReports = lists:foldl(fun (Day, Acct) ->
+                                            case dict:find(Day, FlattenReports) of
+                                              {ok, V} -> [V | Acct];
+                                              error ->
                                                   [#report_mode{user_id =
                                                                     User#group_user.user_id,
                                                                 user_name =
@@ -134,11 +131,51 @@ fill_reports(Reports, User, Days) ->
                                                    | Acct]
                                             end
                                     end,
-                                    [], Days)
-                          ++ Reports
-                 end,
+                                    [], Days),
+
     lists:sort(fun (#report_mode{date = Date1},
                     #report_mode{date = Date2}) ->
                        ddrt_utils:get_days(Date1) > ddrt_utils:get_days(Date2)
                end,
                NewReports).
+
+% fill_reports(Reports, User, Days) ->
+%     DictReport = flatten_reports_by_day(Reports),
+%     NewReports = if dict:size(DictReport) =:= length(Days) ->
+%                         Reports;
+%                     true ->
+%                         lists:foldl(fun (Day, Acct) ->
+%                                             case lists:any(fun
+%                                                              (#report_mode{date = Date}) ->
+%                                                                  ddrt_utils:get_days(Date) =:= Day;
+%                                                              (_Any) -> false
+%                                                            end,
+%                                                            Reports)
+%                                                 of
+%                                               true -> Acct;
+%                                               false ->
+%                                                   [#report_mode{user_id =
+%                                                                     User#group_user.user_id,
+%                                                                 user_name =
+%                                                                     User#group_user.user_name,
+%                                                                 email =
+%                                                                     User#group_user.email,
+%                                                                 content =
+%                                                                     <<"">>,
+%                                                                 date =
+%                                                                     ddrt_utils:days_to_date(Day),
+%                                                                 receive_type =
+%                                                                     User#group_user.receive_type,
+%                                                                 domain_name =
+%                                                                     User#group_user.domain_name}
+%                                                    | Acct]
+%                                             end
+%                                     end,
+%                                     [], Days)
+%                           ++ Reports
+%                  end,
+%     lists:sort(fun (#report_mode{date = Date1},
+%                     #report_mode{date = Date2}) ->
+%                        ddrt_utils:get_days(Date1) > ddrt_utils:get_days(Date2)
+%                end,
+%                NewReports).

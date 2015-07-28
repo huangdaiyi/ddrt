@@ -5,7 +5,7 @@
 
 -record (groups,{id, group_name, scheduling_name="basic"}).
 
--record (report_mode, {user_id, user_name, email, content, date, group_name, template, receive_type, domain_name, domain_id}).
+-record (report_mode, {user_id, user_name, email, content, date, group_name, template, receive_type, domain_name, domain_id, issue}).
 
 -record (email_list, {email, user_name}).
 

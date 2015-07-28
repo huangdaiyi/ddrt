@@ -23,13 +23,17 @@
             .margin-top-10 { margin-top: 1.0em; }
             .margin-top-15 { margin-top: 1.5em; }
             .margin-top-20 { margin-top: 2.0em; }
+            .margin-clear{ margin: 0}
 
-            .padding-05 { padding: 0.5em }
-            .padding-10 { padding: 1.0em }
-            .padding-15 { padding: 1.5em }
-            .padding-20 { padding: 2.0em }
+            .padding-05 { padding: 0.5em; }
+            .padding-10 { padding: 1.0em; }
+            .padding-15 { padding: 1.5em; }
+            .padding-20 { padding: 2.0em; }
 
-            .font-bold {font-weight: 700}
+            .left{ float: left; }
+            .right{ float: right; }
+
+            .font-bold {font-weight: 700; }
             .top-buffur {top: 8em}
             fieldset.scheduler-border {
                 border: 1px groove #ddd !important;
@@ -38,7 +42,7 @@
                 -webkit-box-shadow:  0px 0px 0px 0px #000;
                         box-shadow:  0px 0px 0px 0px #000;
             }
-            textarea{ resize: none;}
+            textarea{ resize: none; border-top: none}
             img {vertical-align: text-top;}
 
             legend.scheduler-border {
@@ -65,10 +69,25 @@
             }
 
             body {
-              padding-bottom: 40px;
-              background-color: #eee;
+                padding-bottom: 40px;
+                background-color: #eee;
             }
-            #status-wrap label{
+            .input-group-addon.danger {
+                color: rgb(255, 255, 255);
+                background-color: rgb(217, 83, 79);
+                border-color: rgb(212, 63, 58);
+            }
+            .input-group-addon.success {
+                color: rgb(255, 255, 255);
+                background-color: rgb(92, 184, 92);
+                border-color: rgb(76, 174, 76);
+            }
+            .input-group-addon.info {
+                color: rgb(255, 255, 255);
+                background-color: rgb(57, 179, 215);
+                border-color: rgb(38, 154, 188);
+            }
+          /*  #status-wrap label{
                 margin-left: 15px;
                 font-weight: normal;
             }
@@ -108,7 +127,7 @@
             }
             .has-error{
                 border: 1px solid red;
-            }
+            }*/
 
         </style>
     </head>
@@ -131,13 +150,13 @@
                 </div>
             </div>
             <div class="row well">
-                <div class="col-sm-4">
+                <!-- <div class="col-sm-4">
                     <div class="input-group">
                         <span class="input-group-addon font-bold">Projects</span>
                         <select id="selProject" class="form-control">
                             <option value="-1">All</option>
                         </select>
-                       <!--  <div class="dropdown">
+                        <div class="dropdown">
                             <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true"   aria-expanded="true">
                                 <span>All</span> <span class="caret"></span>
                             </button>
@@ -147,9 +166,9 @@
                                 <li><a href="#">Something else here</a></li>
                                 <li><a href="#">Separated link</a></li>
                             </ul>
-                        </div> -->
+                        </div>
                     </div>
-                </div>
+                </div> -->
                 <!-- <div class="col-sm-4">
                     <div class="input-group">
                         <span class="input-group-addon font-bold">Issues</span>
@@ -168,45 +187,125 @@
                     </div>
                 </div> -->
                 <div class="col-sm-12 margin-top-15">
-                    <div class="panel panel-default">
+                    <div class="panel panel-info">
                         <div class="panel-heading">
-                            <h3 class="panel-title"><b>Issue status</b>&nbsp;&nbsp;
-                            <small>choose issue status,can faster find your issues</small></h3>
+                            <h3 class="panel-title"><b>Query Issue</b>&nbsp;&nbsp;
+                            <small>choose project and status,can faster find your issues</small></h3>
                         </div>
                     
-                    <div id="status-wrap" class="panel-body">
-                        <!-- <label for="1"><input type="checkbox" name="1" id="1" aria-label="...">Done</label>
-                        <label for="1"><input type="checkbox" name="1" id="1" aria-label="...">Done</label>
-                        <label for="1"><input type="checkbox" name="1" id="1" aria-label="...">Done</label>
-                        <label for="1"><input type="checkbox" name="1" id="1" aria-label="...">Done</label>
-                        <label for="1"><input type="checkbox" name="1" id="1" aria-label="...">Done</label>
-                        <label for="1"><input type="checkbox" name="1" id="1" aria-label="...">Done</label>
-                        <label for="1"><input type="checkbox" name="1" id="1" aria-label="...">Done</label>
-                        <label for="1"><input type="checkbox" name="1" id="1" aria-label="...">Done</label>
-                        <label for="1"><input type="checkbox" name="1" id="1" aria-label="...">Done</label>
-                        <label for="1"><input type="checkbox" name="1" id="1" aria-label="...">Done</label>
-                        <label for="1"><input type="checkbox" name="1" id="1" aria-label="...">Done</label>
-                        <label for="1"><input type="checkbox" name="1" id="1" aria-label="...">Done</label>
-                        <label for="1"><input type="checkbox" name="1" id="1" aria-label="...">Done</label>
-                        <label for="1"><input type="checkbox" name="1" id="1" aria-label="...">Done</label>
-                        <label for="1"><input type="checkbox" name="1" id="1" aria-label="...">Done</label>
-                        <label for="1"><input type="checkbox" name="1" id="1" aria-label="...">Done</label>
-                        <label for="1"><input type="checkbox" name="1" id="1" aria-label="...">Done</label>
-                        <label for="1"><input type="checkbox" name="1" id="1" aria-label="...">Done</label>
-                        <label for="1"><input type="checkbox" name="1" id="1" aria-label="...">Done</label>
-                        <label for="1"><input type="checkbox" name="1" id="1" aria-label="...">Done</label>
-                        <label for="1"><input type="checkbox" name="1" id="1" aria-label="...">Done</label>
-                        <label for="1"><input type="checkbox" name="1" id="1" aria-label="...">Done</label>
-                        <label for="1"><input type="checkbox" name="1" id="1" aria-label="...">Done</label>
-                        <label for="1"><input type="checkbox" name="1" id="1" aria-label="...">Done</label>
-                        <label for="1"><input type="checkbox" name="1" id="1" aria-label="...">Done</label>
-                        <label for="1"><input type="checkbox" name="1" id="1" aria-label="...">Done</label>
-                        <label for="1"><input type="checkbox" name="1" id="1" aria-label="...">Done</label>
-                        <label for="1"><input type="checkbox" name="1" id="1" aria-label="...">Done</label> -->
+                        <div id="status-wrap" class="panel-body">
+                            <div class="col-sm-4">
+                                <div class="input-group">
+                                    <span class="input-group-addon success font-bold">Projects</span>
+                                    <select id="selProject" class="form-control">
+                                        <option value="-1">All</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-sm-8">
+                                
+                                <div class="input-group">
+
+                                    <span class="input-group-addon info font-bold">status</span>
+                                    <div class="form-control">
+                                        <label for="0" class="checkbox-inline" title="The issue is open and ready for the assignee to start work on it.">
+                                            <input type="checkbox" name="status" id="0" value="Open" />                                
+                                            Open
+                                        </label>
+                                        <label for="1" class="checkbox-inline"  title="This issue is being actively worked on at the moment by the assignee.">
+                                            <input type="checkbox" name="status" id="1" value="In Progress" />                                
+                                            In Progress
+                                        </label>
+                                        <label for="2" class="checkbox-inline"  title="This issue was once resolved, but the resolution was deemed incorrect. From here issues are either marked assigned or resolved.">
+                                            <input type="checkbox" name="status" id="2" value="Reopened" />                                
+                                            Reopened
+                                        </label>
+                                        <label for="3" class="checkbox-inline"  title="A resolution has been taken, and it is awaiting verification by reporter. From here issues are either reopened, or are closed.">
+                                            <input type="checkbox" name="status" id="3" value="Resolved" />                                
+                                            Resolved
+                                        </label>
+                                        <label for="4" class="checkbox-inline"  title="The issue is considered finished, the resolution is correct. Issues which are closed can be reopened.">
+                                            <input type="checkbox" name="status" id="4" value="Closed" />                                
+                                            Closed
+                                        </label>
+                                    </div>
+                                </div>
+
+                                
+                                <!-- <label for="5" title="">                        
+                                <input type="checkbox" name="status" id="5" value="To Do" />                        
+                                To Do
+                            </label>
+                            <label for="6" title="">
+                                <input type="checkbox" name="status" id="6" value="Done" />                        
+                                Done
+                            </label>
+                            -->
+                        </div>
+                        </div>
                     </div>
+                </div>
+                <div class="col-sm-12">
+                    <div class="panel panel-info">
+                        <div class="panel-heading">
+                            <h3 class="panel-title"><b>Issues</b>&nbsp;&nbsp;
+                            <small>your issues</small></h3>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover table-condensed">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>T</th>
+                                        <th>Key</th>
+                                        <th>Summary</th>
+                                        <th>Operation</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <th scope="row">1</th>
+                                        <td>Table cell</td>
+                                        <td>Table cell</td>
+                                        <td>Table cell</td>
+                                        <td><button type="button" class="btn btn-default btn-xs font-bold" title="add a report">    +
+                                        </button></td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">2</th>
+                                        <td>Table cell</td>
+                                        <td>Table cell</td>
+                                        <td>Table cell</td>
+                                        <td><button type="button" class="btn btn-default btn-xs font-bold" title="add a report">    +
+                                        </button></td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">3</th>
+                                        <td>Table cell</td>
+                                        <td>Table cell</td>
+                                        <td>Table cell</td>
+                                        <td><button type="button" class="btn btn-default btn-xs font-bold" title="add a report">    +
+                                        </button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                         <div class="panel-footer clearfix padding-05">
+                            <ul class="pagination pagination-sm margin-clear right">
+                                <li class="disabled"><a href="#" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a></li>
+                                <li class="active"><a href="#">1 <span class="sr-only">(current)</span></a></li>
+                                <li><a href="#">2</a></li>
+                                <li><a href="#">3</a></li>
+                                <li><a href="#">4</a></li>
+                                <li><a href="#">5</a></li>
+                                <li><a href="#" aria-label="Next"><span aria-hidden="true">&raquo;</span></a></li>
+                                
+                            </ul>
+                         </div>
                     </div>
                 </div>
             </div>
+           
             <div class="row">
                <!--  <div class="row">
                     <div class="col-sm-6">
@@ -240,97 +339,73 @@
                 </div> -->
                 <form id="reportFrom" method="post" action="api/v1/jira/worklog">
                     <div class="col-sm-12">
-                       <!--  <div class="alert alert-success" role="alert"  id="success">
-                            <p class="text-center" id="success-content"></p>
-                        </div> -->
-                        <!-- <div class="row">
-                            <div class="col-sm-7">
-                                <label class="control-label" >Report Content</label>
-                            </div>
-                            <div class="col-sm-3">
-                                <label class="control-label" >Issue</label>
-                            </div>
-                            <div class="col-sm-2">
-                                <label class="control-label" >Time Spent</label>
-                            </div>
-                        </div> -->
-                       
-                        <fieldset id="reports" class="scheduler-border form-group" >
-                            <legend class="scheduler-border">
-                                <label class="control-label">Report Content
-                                    <button id="add_report" type="button" class="btn btn-default btn-xs font-bold" title="add a report" >    +
-                                    </button>
-                                </label>
-                            </legend>
+                        <div class="pa">
 
-                            <div id="tipWarp" class="modal fade bs-example-modal-sm" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true">
-                                <div class="modal-dialog modal-sm">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                                            <h4 class="modal-title" id="myModalLabel">Error Info</h4>
+                            <!-- Nav tabs -->                        
+                            <ul class="nav nav-tabs" role="tablist">
+                                <li role="presentation" class="active">
+                                    <a href="#home" aria-controls="home" role="tab" data-toggle="tab">Issue1</a>
+                                </li>
+                                <li role="presentation">
+                                    <a href="#profile" aria-controls="profile" role="tab" data-toggle="tab">Issue2</a>
+                                </li>
+                                <li role="presentation">
+                                    <a href="#messages" aria-controls="messages" role="tab" data-toggle="tab">Issue3</a>
+                                </li>
+                                <li role="presentation">
+                                    <a href="#settings" aria-controls="settings" role="tab" data-toggle="tab">Issue4</a>
+                                </li>
+                            </ul>
+
+                            <!-- Tab panes -->                        
+                            <div class="tab-content">
+                                <div role="tabpanel" class="tab-pane fade in active padding-10" id="home">
+                                    <div class="panel">
+                                        <div class="input-group col-sm-2 form-group">
+                                            <span class="input-group-addon font-bold">Time Spent</span>
+                                            <input name="timeSpent" type="text" class="form-control"  value="8" id="exampleInputAmount" placeholder="hours">                                    
+                                            <div class="input-group-addon">h</div>
                                         </div>
-                                        <div class="modal-body">
-                                            <strong>Error: </strong><p id="tipWrap"></p>
+                                        <textarea class="form-control" rows="4" placeholder="Enter your today's report" name="content" ></textarea>
+                                    </div>
+                                    
+                                </div>
+                                <div role="tabpanel" class="tab-pane fade  padding-10" id="profile">
+                                    <div class="panel">
+                                        <div class="input-group col-sm-2 form-group">
+                                            <span class="input-group-addon font-bold">Time Spent</span>
+                                            <input name="timeSpent" type="text" class="form-control"  value="8" id="exampleInputAmount" placeholder="hours">                                    
+                                            <div class="input-group-addon">h</div>
                                         </div>
+                                        <textarea class="form-control" rows="4" placeholder="Enter your today's report" name="content" ></textarea>
+                                    </div>
+                                </div>
+                                <div role="tabpanel" class="tab-pane fade padding-10" id="messages">
+                                    <div class="panel">
+                                        <div class="input-group col-sm-2 form-group">
+                                            <span class="input-group-addon font-bold">Time Spent</span>
+                                            <input name="timeSpent" type="text" class="form-control"  value="8" id="exampleInputAmount" placeholder="hours">                                    
+                                            <div class="input-group-addon">h</div>
+                                        </div>
+                                        <textarea class="form-control" rows="4" placeholder="Enter your today's report" name="content" ></textarea>
+                                    </div>
+                                </div>
+                                <div role="tabpanel" class="tab-pane fade padding-10" id="settings">
+                                    <div class="panel">
+                                        <div class="input-group col-sm-2 form-group">
+                                            <span class="input-group-addon font-bold">Time Spent</span>
+                                            <input name="timeSpent" type="text" class="form-control"  value="8" id="exampleInputAmount" placeholder="hours">                                    
+                                            <div class="input-group-addon">h</div>
+                                        </div>
+                                        <textarea class="form-control" rows="4" placeholder="Enter your today's report" name="content" ></textarea>
                                     </div>
                                 </div>
                             </div>
 
-                            <div name="item" class="row form-group">
-                                <div class="col-sm-7">
-                                    <!-- <button class="input-group-addon font-bold">X</button> -->
-                                    <textarea class="form-control" rows="4" placeholder="Enter your today's report" name="content" ></textarea>
-                                </div>
-                                <div class="col-sm-4">
-                                    <div class="row form-group">
-                                        <!-- <div class="col-sm-10 input-group">
-                                            <span class="input-group-addon font-bold">Issues</span>
-                                            <select id="sel-group" class="selectpicker form-control" data-val="0" title="Please select a group ...">
-                                                <option value="-1">new ...</option>
-                                                <option value="0" selected="selected">select Issues</option>
-                                                <option value="1">Issue 1</option>
-                                                <option value="2">Issue 2</option>
-                                                <option value="3">Issue 3</option>
-                                                <option value="4">Issue 4</option>
-                                                <option value="5">Issue 5</option>
-                                            </select>
-                                        </div> -->
-                                        <div class="col-sm-12">
-                                            <div class="input-group">
-                                                <span class="input-group-addon font-bold">Issues</span>
-                                                <select name="issue" class="selectpicker form-control" data-val="0" title="Please select a group ...">
-                                                    <option value="-1">select issue</option>
-                                                   <!--  <option value="0" selected="selected">select Issues</option>
-                                                    <option value="1">Issue 1</option>
-                                                    <option value="2">Issue 2</option>
-                                                    <option value="3">Issue 3</option>
-                                                    <option value="4">Issue 4</option>
-                                                    <option value="5">Issue 5</option> -->
-                                                </select>
-                                                <span class="input-group-btn">
-                                                    <button name="load" class="btn btn-default" type="button">load</button>
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="row form-group">
-                                        <div class="col-sm-12">
-                                            <div class="input-group">
-                                                <span class="input-group-addon font-bold">Time Spent</span>
-                                                <input name="timeSpent" type="text" class="form-control"  value="8" id="exampleInputAmount" placeholder="hours">
-                                                <div class="input-group-addon">h</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-sm-1">
-                                    <button type="button" name="close" title="remove this report" class="btn btn-default btn-sm">X</button>
-                                </div>
-                            </div>
-                            
-                        </fieldset>
+                        </div>
                         
+
+
                     </div>
                     <div class="col-sm-2 col-sm-offset-5 form-group">
                         <button  id="submitReport" data-loading-text="Loading..." type="submit" class="btn btn-primary btn-lg btn-block">Submit</button>
@@ -448,38 +523,38 @@
 
                 initUser();
 
-                $("#reportFrom").validate({
-                    rules: {
-                        content: {
-                            maxlength: 2000, 
-                            required: true
-                        },
-                        issue: {
-                            number:true,
-                            digits:true,
-                            required: true
-                        },
-                        timeSpent: {
-                            number:true,
-                            digits:true,
-                            required: true
-                        }
-                    },
+                // $("#reportFrom").validate({
+                //     rules: {
+                //         content: {
+                //             maxlength: 2000, 
+                //             required: true
+                //         },
+                //         issue: {
+                //             number:true,
+                //             digits:true,
+                //             required: true
+                //         },
+                //         timeSpent: {
+                //             number:true,
+                //             digits:true,
+                //             required: true
+                //         }
+                //     },
 
-                    errorElement: 'span',
-                    errorClass: 'help-block',
-                    highlight: function(element) {
-                        //console.log("error");
-                        $(element).addClass('has-error');
-                    },
-                    unhighlight: function(element) {
-                        //console.log("ok");
-                        $(element).removeClass('has-error');
-                    },
-                    errorLabelContainer:$("#tipWrap"),
-                    submitHandler:submitReport
+                //     errorElement: 'span',
+                //     errorClass: 'help-block',
+                //     highlight: function(element) {
+                //         //console.log("error");
+                //         $(element).addClass('has-error');
+                //     },
+                //     unhighlight: function(element) {
+                //         //console.log("ok");
+                //         $(element).removeClass('has-error');
+                //     },
+                //     errorLabelContainer:$("#tipWrap"),
+                //     submitHandler:submitReport
 
-                });
+                // });
 
             });
             
@@ -664,7 +739,7 @@
                 titlePanle$.find("img").attr("src", data.avatarUrls["16x16"]).next().html(data.displayName).data(data);
                 $("#myModal").modal("hide");
                 initProjects();
-                initStatus();
+                //initStatus();
             };
 
         </script>
