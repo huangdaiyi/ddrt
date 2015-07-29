@@ -20,3 +20,11 @@ var getCookie = function(c_name){
     }
     return ""
 };
+
+Array.prototype.remove=function(element){
+    var index = $.inArray(element, this);
+    if (index === -1) {
+        return;
+    }
+    this.splice(index, 1);
+};

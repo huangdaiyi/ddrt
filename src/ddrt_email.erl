@@ -102,10 +102,10 @@ get_report_days(Day, Num, Acct) ->
 
 flatten_reports_by_day(Reports) ->
   lists:foldl(fun(#report_mode{date = Date} = R, Acct) ->
-      Key = ddrt_utils:get_days(Date),
+      %Key = ddrt_utils:get_days(Date),
       dict:update(ddrt_utils:get_days(Date), 
-        fun(V) -> V#report_mode{content = V#report_mode.content ++ "<br />" ++ "<b>"++ R#report_mode.issue ++<"/b> <br />" ++ R#report_mode.content} end,
-        R#report_mode{content = "<b>" ++ R#report_mode.issue ++<"/b> <br />" ++ R#report_mode.content}, Acct)
+        fun(V) -> V#report_mode{content = V#report_mode.content ++ "<br />" ++ "<b>"++ R#report_mode.issue ++ "</b> <br />" ++ R#report_mode.content} end,
+        R#report_mode{content = "<b>" ++ R#report_mode.issue ++ "</b> <br />" ++ R#report_mode.content}, Acct)
   end, dict:new(), Reports).
 
 fill_reports(Reports, User, Days) ->
