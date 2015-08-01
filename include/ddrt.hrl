@@ -1,11 +1,11 @@
 
--record (userentity,{id, email,type,receive_type,gname,template,dname}).
+-record (userentity,{id, email,type,receive_type, group_name, template, domain_name}).
 
 -record (users, {id}).
 
 -record (groups,{id, group_name, scheduling_name="basic"}).
 
--record (report_mode, {user_id, user_name, email, content, date, group_name, template, receive_type, domain_name, domain_id, issue}).
+-record (report_mode, {worklog_id, user_id, user_name, email, content, date, group_name, template, receive_type, domain_name, domain_id, time_spent ,issue}).
 
 -record (email_list, {email, user_name}).
 

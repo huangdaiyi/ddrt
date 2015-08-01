@@ -2,11 +2,12 @@
 -define (JIRA_AUTH_URL, "http://jira/rest/auth/1/session").
 -define (JIRA_API(Resource), lists:flatten(io_lib:format("http://jira/rest/api/2/~s", [ proplists:get_value(Resource, [{project,"project"}, {user,"user"}, {search, "search"},{status,"status"}]) ]))).
 -define (JIRA_LOG_URL(IssueId), lists:flatten(io_lib:format("http://jira/rest/api/2/issue/~s/worklog", [IssueId]))).
+-define (JIRA_EDIT_URL(IssueId, LogId), lists:flatten(io_lib:format("http://jira/rest/api/2/issue/~s/worklog/~s", [IssueId, LogId]))).
 
 -define (JIRA_TOKEN, "atlassian.xsrf.token").
 -define (JIRA_SESSION, "JSESSIONID").
 -export ([login/3, login_info/1, login_out/1, project/1, send_http/4, send_http/5]).
--export ([user_info/2, parse_cookie/1, search/2, get_all_status/1, worklog/2]).
+-export ([user_info/2, parse_cookie/1, search/2, get_all_status/1, worklog/2, delete_log/3, edit_log/2]).
 
 
 login(Username, Password, _Req) ->
@@ -46,22 +47,33 @@ search(Data, Req) ->
     {ok, StatusCode, ResposneHeaders, Content} = send_http(post, ?JIRA_API(search), Headers, ddrt_utils:string_to_binary(Body)),
     {StatusCode, ResposneHeaders, Content}.
 
-worklog(Reports, Req) ->
+worklog(Report, Req) ->
     Headers = [{"content-type", "application/json"}, jira_cookie(Req)],
     Started = ddrt_utils:time_to_utc_string(erlang:now()),
-    jira_log(Reports, list_to_binary(Started), Headers).
+    worklog_2(Report, list_to_binary(Started), Headers).
+
+edit_log(Report, Req) ->
+    Headers = [{"content-type", "application/json"}, jira_cookie(Req)],
+    Started = ddrt_utils:time_to_utc_string(erlang:now()),
+    edit_log_2(Report, list_to_binary(Started), Headers).
+
+delete_log(IssueId, LogId, Req) ->
+    Headers = [jira_cookie(Req)],
+    delete_log_2(IssueId, LogId, Headers).
 
 
-jira_log([],  _Started, _AuthHeaders) -> ok;
-jira_log([{obj, R} | Reports], Started, AuthHeaders) ->
-    IssueId = proplists:get_value("id", R),
-    Url = ?JIRA_LOG_URL(IssueId),
-    Body = rfc4627:encode({obj, R}),
-    case send_http(post, Url, AuthHeaders, ddrt_utils:string_to_binary(Body)) of
-        {ok, 201, _, _} -> jira_log(Reports, Started, AuthHeaders); 
-        {ok, StatusCode, _, _} ->  {error, StatusCode}
-    end.
-    
+
+% jira_log([],  _Started, _AuthHeaders) -> ok;
+% jira_log([{obj, R} | Reports], Started, AuthHeaders) ->
+%     IssueId = proplists:get_value("key", R),
+
+%     Url = ?JIRA_LOG_URL(IssueId),
+%     Body = rfc4627:encode({obj, proplists:delete("key", R)}),
+%     case send_http(post, Url, AuthHeaders, ddrt_utils:string_to_binary(Body)) of
+%         {ok, 201, Content, _} -> jira_log(Reports, Started, AuthHeaders); 
+%         {ok, StatusCode, _, _} ->  {error, StatusCode}
+%     end.
+
 
 
 project(Req) ->
@@ -112,6 +124,32 @@ send_http(Method, Url, HttpHeaders, Body, Timeout) ->
 %         undefined -> Default;
 %         V -> V
 %     end.
+
+worklog_2({obj, R}, _Started, AuthHeaders) ->
+    worklog_2(R, _Started, AuthHeaders);
+worklog_2(R, _Started, AuthHeaders) ->
+    IssueId = proplists:get_value("key", R),
+    Url = ?JIRA_LOG_URL(IssueId),
+    Body = rfc4627:encode({obj, proplists:delete("key", R)}),
+    {ok, StatusCode, ResposneHeaders, Content} = send_http(post, Url, AuthHeaders, ddrt_utils:string_to_binary(Body)),
+    {StatusCode, ResposneHeaders, Content}.
+
+
+edit_log_2({obj, R},  _Started, AuthHeaders) -> 
+    edit_log_2(R, _Started, AuthHeaders);
+edit_log_2(R, _Started, AuthHeaders) ->
+    IssueId = proplists:get_value("key", R),
+    LogId = proplists:get_value("id", R),
+    Url = ?JIRA_EDIT_URL(IssueId, LogId),
+    Body = rfc4627:encode({obj, proplists:delete("key", R)}),
+    {ok, StatusCode, ResposneHeaders, Content} = send_http(post, Url, AuthHeaders, ddrt_utils:string_to_binary(Body)),
+    {StatusCode, ResposneHeaders, Content}.
+
+delete_log_2(IssueId, LogId, AuthHeaders) -> 
+    Url = ?JIRA_EDIT_URL(IssueId, LogId),
+    {ok, StatusCode, _, _} = send_http(delete, Url, AuthHeaders, <<>>),
+    {StatusCode, [], <<>>}.
+
 
 parse_cookie(Headers) ->
     {"cookie", string:join(proplists:get_all_values("set-cookie",Headers), ";")}.

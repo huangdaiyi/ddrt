@@ -4,15 +4,15 @@
          get_today_days/0, get_days/3, get_days/1,
          days_to_date/1, days_to_str_date/1, get_str_today/0,
          string_to_binary/1, binary_to_string/1,
-         time_to_utc_string/1]).
+         time_to_utc_string/1, get_value/2, get_value/3]).
 -include ("include/ddrt.hrl").
 
 build_report_body(Reports) ->
     [{obj,
       [{"userid", Email}, {"content", Content},
-       {"date", list_to_binary(datetime_to_string(Date))}]}
-     || #report_mode{email = Email, content = Content,
-                     date = {datetime, Date}}
+       {"date", list_to_binary(datetime_to_string(Date))}, {"issue", Issue}, {"worklog_id", Id}]}
+     || #report_mode{worklog_id=Id,email = Email, content = Content,
+                     date = {datetime, Date}, issue = Issue }
             <- Reports].
 
 datetime_to_string(DateTime) ->
@@ -70,9 +70,9 @@ format_data_line(Data) when is_list(Data) ->
                [global, {return, list}]).
 
 user_format(Result) ->
-    lists:map(fun (#userentity{id = Id, dname = Dname,
+    lists:map(fun (#userentity{id = Id, domain_name = Dname,
                                email = Email, type = Type,
-                               receive_type = Receivetype, gname = GroupName,
+                               receive_type = Receivetype, group_name = GroupName,
                                template = Template}) ->
                       {obj,
                        [{id, Id}, {email, Email}, {groupname, GroupName},
@@ -97,3 +97,23 @@ time_to_utc_string({MegaSecs, Secs, MicroSecs}) ->
                                 ".0wZ",
                                 [Year, Month, Day, Hour, Minute, Second,
                                  MicroSecs])).
+
+get_value(Key,Lists) ->
+    case proplists:get_value(Key,Lists,undefined) of
+        undefined ->
+            throw({termination, 400, [], <<>>});
+        Value when is_binary(Value) ->
+            erlang:binary_to_list(Value);
+        Value ->
+            Value
+        end.
+
+get_value(Key,Lists,Default) ->
+    case proplists:get_value(Key,Lists,undefined) of
+        undefined ->
+            Default;
+        Value when is_binary(Value) ->
+            erlang:binary_to_list(Value);
+        Value ->
+            Value
+        end.

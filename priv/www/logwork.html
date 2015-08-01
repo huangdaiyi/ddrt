@@ -561,7 +561,7 @@
                 var item$ = $(item);
                 var reportItem = {};
                 reportItem.comment = item$.find("textarea[name=content]").val();
-                reportItem.id = item$.find("select[name=issue]").val();
+                reportItem.key = item$.find("select[name=issue]").val();
                 reportItem.timeSpent = item$.find("input:text[name=timeSpent]").val();
                 return reportItem;
             }
