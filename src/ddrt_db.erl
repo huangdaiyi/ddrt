@@ -94,8 +94,10 @@ update_report(Content, Date, TimeSpent, WorklogId, UserID) ->
 delete_report([], _UserID) -> ok;
 delete_report(WorklogId, UserID) when is_number(WorklogId) ->
     update(delete_report, [WorklogId, UserID]);
-delete_report(WorklogIds, UserID) when is_list(WorklogIds) ->
-    update(delete_reports, [string:join([ integer_to_list(I) || I <- WorklogIds], ","), UserID]).
+
+delete_report([F | R], UserID) ->
+    update(delete_report, [list_to_binary(F), UserID]),
+    delete_report(R, UserID).
 
 
 
@@ -140,7 +142,7 @@ get_all_reports(Date, DayNum, GroupID) ->
 
 get_user_report(Date, DayNum, UserID) ->
     BinDay = ddrt_utils:datetime_format(Date),
-    Params = [BinDay, DayNum, BinDay, UserID],
+    Params = [BinDay, BinDay, DayNum, UserID],
     Result = select(get_user_report, report_mode, Params),
     Result.
 

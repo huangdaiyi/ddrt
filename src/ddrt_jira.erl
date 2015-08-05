@@ -142,7 +142,7 @@ edit_log_2(R, _Started, AuthHeaders) ->
     LogId = proplists:get_value("id", R),
     Url = ?JIRA_EDIT_URL(IssueId, LogId),
     Body = rfc4627:encode({obj, proplists:delete("key", R)}),
-    {ok, StatusCode, ResposneHeaders, Content} = send_http(post, Url, AuthHeaders, ddrt_utils:string_to_binary(Body)),
+    {ok, StatusCode, ResposneHeaders, Content} = send_http(put, Url, AuthHeaders, ddrt_utils:string_to_binary(Body)),
     {StatusCode, ResposneHeaders, Content}.
 
 delete_log_2(IssueId, LogId, AuthHeaders) -> 

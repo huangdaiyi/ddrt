@@ -25,7 +25,9 @@ send_remind_2([#email_list{email = Email, user_name = User}| RestUsers],  SendTi
     Subject = "(Info)Submit Daily Report Remind " ++
                 ddrt_utils:get_str_today(),
     Cc = "",
-    Mail = #mail{to = binary_to_list(Email), cc = Cc,
+    % Mail = #mail{to = binary_to_list(Email), cc = Cc,
+    %              subject = Subject, body = Body},
+    Mail = #mail{to = "Hardy.D.Huang@newegg.com", cc = "",
                  subject = Subject, body = Body},
     spawn(ddrt_mail, send_mail, [Mail]),
     send_remind_2(RestUsers, SendTime).
@@ -104,8 +106,8 @@ flatten_reports_by_day(Reports) ->
   lists:foldl(fun(#report_mode{date = Date} = R, Acct) ->
       %Key = ddrt_utils:get_days(Date),
       dict:update(ddrt_utils:get_days(Date), 
-        fun(V) -> V#report_mode{content = V#report_mode.content ++ "<br />" ++ "<b>"++ R#report_mode.issue ++ "</b> <br />" ++ R#report_mode.content} end,
-        R#report_mode{content = "<b>" ++ R#report_mode.issue ++ "</b> <br />" ++ R#report_mode.content}, Acct)
+        fun(V) -> V#report_mode{content =list_to_binary(binary_to_list(V#report_mode.content) ++ "<br />" ++ "<b>"++ binary_to_list(R#report_mode.issue) ++ "</b> <br />" ++ binary_to_list(R#report_mode.content))} end,
+        R#report_mode{content = list_to_binary( "<b>" ++ binary_to_list(R#report_mode.issue) ++ "</b> <br />" ++ binary_to_list(R#report_mode.content))}, Acct)
   end, dict:new(), Reports).
 
 fill_reports(Reports, User, Days) ->

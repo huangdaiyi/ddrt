@@ -10,9 +10,9 @@
 build_report_body(Reports) ->
     [{obj,
       [{"userid", Email}, {"content", Content},
-       {"date", list_to_binary(datetime_to_string(Date))}, {"issue", Issue}, {"worklog_id", Id}]}
+       {"date", list_to_binary(datetime_to_string(Date))}, {"issue", Issue}, {"worklogId", Id}, {"timeSpent", TimeSpent}]}
      || #report_mode{worklog_id=Id,email = Email, content = Content,
-                     date = {datetime, Date}, issue = Issue }
+                     date = {datetime, Date}, time_spent = TimeSpent , issue = Issue }
             <- Reports].
 
 datetime_to_string(DateTime) ->

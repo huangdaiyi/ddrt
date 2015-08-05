@@ -239,7 +239,7 @@ do_put(["api", _V, "report"], _DocRoot, Req) ->
         UserID ->
             case ddrt_db:check_today_report(UserID) of 
                 [] -> 
-                    Content = ddrt_utils:format_data_line(proplists:get_value("content", Data, "")),
+                    Content = ddrt_utils:format_data_line(proplists:get_value("comment", Data, "")),
                     Datetime = proplists:get_value("datetime", Data, calendar:local_time()),
                     case ddrt_db:add_report(UserID, Content, Datetime, "unnokown") of
                         ok ->
@@ -319,14 +319,14 @@ create_reports(CreateReports, UserId, Datetime, Req) ->
                 {StatusCode, Headers, Message} -> throw({termination, StatusCode, Headers, Message})
             end,
             WorklogId = proplists:get_value("id", Worklog),
-            Content = proplists:get_value("content", R, ""),
+            Content = proplists:get_value("comment", R, ""),
             TimeSpent = proplists:get_value("timeSpent", R, 8),
             Key = ddrt_utils:get_value("key", R),
             case ddrt_db:add_report(UserId, Content, Datetime,TimeSpent, Key, WorklogId) of
                 ok -> ok;
                  _ ->  throw({termination, 500, [], <<"Failed">>})
             end 
-    end || {obj, R} <- CreateReports].
+    end || {obj, R} <- CreateReports], ok.
 
 
 update_reports([], _, _, _) -> ok;
@@ -334,36 +334,29 @@ update_reports(undefined, _, _, _) -> ok;
 update_reports(UpdateReports, UserId, Datetime, Req) ->
 
     [ begin 
-        case ddrt_jira:worklog(R, Req) of
-            {200, _, _}  -> ok;
+        case ddrt_jira:edit_log(R, Req) of
+            {StatusCode, _, _} when StatusCode =:=200; StatusCode =:= 404  -> ok;
             {StatusCode, Headers, Message} -> throw({termination, StatusCode, Headers, Message})
         end,
-        Content = proplists:get_value("content", R, ""),
+        Content = proplists:get_value("comment", R, ""),
         TimeSpent = proplists:get_value("timeSpent", R, 8),
-        WorklogId = ddrt_utils:get_value("worklog_id", R),
+        WorklogId = ddrt_utils:get_value("id", R),
         case ddrt_db:update_report(Content, Datetime,TimeSpent, WorklogId, UserId) of
             ok -> ok;
              _ ->  throw({termination, 500, [], <<"Failed">>})
         end 
-    end || {obj, R} <- UpdateReports].
+    end || {obj, R} <- UpdateReports], ok.
 
 delete_reports([], _, _) -> ok;
 delete_reports(undefined, _, _) -> ok;
-delete_reports({obj, DeleteReprots}, UserId, Req) ->
+delete_reports(DeleteReprots, UserId, Req) ->
     WorklogIds =  [ begin 
             IssueId = ddrt_utils:get_value("key", R),
-            LogId = ddrt_utils:get_value("worklog_id", R),
+            LogId = ddrt_utils:get_value("id", R),
             case ddrt_jira:delete_log(IssueId, LogId, Req) of
-                {204, _, _}  -> LogId;
+                {StatusCode, _, _} when StatusCode =:=204; StatusCode =:= 404 -> LogId;
                 {StatusCode, _, _} -> throw({termination, StatusCode, [],  
                     list_to_binary(lists:flatten(io_lib:format("delete failed, issue ~s, worklog id ~s", [IssueId, LogId])))})
             end
-            % Content = proplists:get_value("content", R, ""),
-            % TimeSpent = proplists:get_value("timeSpent", R, 8),
-            % WorklogId = ddrt_utils:get_value("worklog_id", R),
-            % case ddrt_db:update_report(Content, Datetime,TimeSpent, WorklogId, UserId) of
-            %     ok -> ok;
-            %      _ ->  throw({termination, 500, [], <<"Failed">>})
-            % end 
         end || {obj, R} <- DeleteReprots],
-    ddrt_db:delete_report(WorklogIds, UserId).
+    ddrt_db:delete_report(WorklogIds, UserId), ok.
