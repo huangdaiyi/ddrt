@@ -1,8 +1,8 @@
 -module (ddrt_jira).
--define (JIRA_AUTH_URL, "http://jira/rest/auth/1/session").
--define (JIRA_API(Resource), lists:flatten(io_lib:format("http://jira/rest/api/2/~s", [ proplists:get_value(Resource, [{project,"project"}, {user,"user"}, {search, "search"},{status,"status"}]) ]))).
--define (JIRA_LOG_URL(IssueId), lists:flatten(io_lib:format("http://jira/rest/api/2/issue/~s/worklog", [IssueId]))).
--define (JIRA_EDIT_URL(IssueId, LogId), lists:flatten(io_lib:format("http://jira/rest/api/2/issue/~s/worklog/~s", [IssueId, LogId]))).
+-define (JIRA_AUTH_URL,  string:concat(ddrt_utils:get_jira_url(), "/rest/auth/1/session")).
+-define (JIRA_API(Resource), lists:flatten(io_lib:format("~s/rest/api/2/~s", [ ddrt_utils:get_jira_url(), proplists:get_value(Resource, [{project,"project"}, {user,"user"}, {search, "search"},{status,"status"}]) ]))).
+-define (JIRA_LOG_URL(IssueId), lists:flatten(io_lib:format("~s/rest/api/2/issue/~s/worklog", [ddrt_utils:get_jira_url(),IssueId]))).
+-define (JIRA_EDIT_URL(IssueId, LogId), lists:flatten(io_lib:format("~s/rest/api/2/issue/~s/worklog/~s", [ddrt_utils:get_jira_url(),IssueId, LogId]))).
 
 -define (JIRA_TOKEN, "atlassian.xsrf.token").
 -define (JIRA_SESSION, "JSESSIONID").

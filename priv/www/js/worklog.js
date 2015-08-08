@@ -4,6 +4,7 @@ var worklog = {
         selected:[],
         checkedTag:'<span class="glyphicon glyphicon-ok pull-right" aria-hidden="true"></span>'
     },
+    autoResizeOption:{rows:1,cols:75, maxRow:10},
     getReportObj:function(objId){
         return $("<tr id="+ objId +"><th></th><td><textarea class=\"form-control\" rows=\"1\" placeholder=\"Enter your today's report\" name=\"content\" data-container=\"body\" data-toggle=\"popover\" data-placement=\"right\"></textarea></td><td><input  maxlength=\"4\" name=\"timeSpent\" type=\"text\" class=\"form-control\" placeholder=\"hours\" data-container=\"body\" data-toggle=\"popover\" data-placement=\"right\"></td><td class=\"txt-center\"> <button type=\"button\" name=\"close\" title=\"remove this report\" class=\"btn btn-default btn-xs\">X</button></td></tr>");
     }
@@ -73,7 +74,12 @@ $(document).ready(function(){
 
     initUser().done(orderInit).fail(closeLoading).fail(showLogin);
      
-    $("#selProject, #selStatus").change(function(){initPagination();});
+    $("#selProject, #selStatus").change(function(){
+        if(!$("#collapse").data.init){
+            $("#collapse").data("init", true);
+        }
+        initPagination();
+    });
 
     $("#issues-wrap").on("click", "#issues-tb :button", function(){
         var btn = $(this), btnTd = btn.parent(),summaryTd = btnTd.prev(), 
@@ -99,6 +105,7 @@ $(document).ready(function(){
             worklog.global.selected.push(objId);
             reportObj = worklog.getReportObj(objId);
             reportObj.appendTo("#report-tb").data({key:objId, action:"create"});
+            reportObj.find("textarea").textareaAutoResize(worklog.autoResizeOption);
         }else{
             if (reportObj.data().action === "delete") {
                 reportObj.append(reportObj.data().children);
@@ -125,17 +132,24 @@ $(document).ready(function(){
 
     $("#collapse").on("click", function(){
         var collapse$ = $(this);
-        var wrap$ = $("#issues-wrap")
-        if(collapse$.hasClass("glyphicon-collapse-up")){
-            wrap$.slideDown("slow", function(){
-                collapse$.removeClass("glyphicon-collapse-up").addClass("glyphicon-collapse-down");
-                wrap$.next().slideDown();
-            });
+        var issuesSelect = function(){
+            var wrap$ = $("#issues-wrap")
+                if(collapse$.hasClass("glyphicon-collapse-up")){
+                    wrap$.slideDown("slow", function(){
+                        collapse$.removeClass("glyphicon-collapse-up").addClass("glyphicon-collapse-down");
+                        wrap$.next().fadeIn();
+                    });
+                }else{
+                    wrap$.slideUp("slow", function(){
+                        collapse$.removeClass("glyphicon-collapse-down").addClass("glyphicon-collapse-up");
+                        wrap$.next().slideUp("fast");
+                    });
+                }
+        };
+        if(!collapse$.data().init) {
+            initProjects().done(function(){initPagination();collapse$.data("init", true); issuesSelect();}).fail(closeLoading);
         }else{
-            wrap$.slideUp("slow", function(){
-                collapse$.removeClass("glyphicon-collapse-down").addClass("glyphicon-collapse-up");
-                wrap$.next().slideUp();
-            });
+            issuesSelect();
         }
     });
 
@@ -206,7 +220,9 @@ $(document).ready(function(){
 
     });
 
-
+    $(document).click(function(){
+        $("#collapse").popover("destroy");
+    });
 });
 
 
@@ -234,7 +250,9 @@ function closeLogin(){
 function orderInit(){
     var  init = function(){
         $("#reportForm textarea").textareaAutoResize({rows:1,cols:75, maxRow:10});
-        initProjects().done(function(){initPagination();}).fail(closeLoading);
+        closeLoading();
+        $("#collapse").popover({"content":"Hey, Welcome DDRT. Click here to add more issue !"}).popover('show');
+        //initProjects().done(function(){initPagination();}).fail(closeLoading);
      }; 
     loadTodayIssues(init);
 };
@@ -290,7 +308,9 @@ var initPagination = function(query){
                     load_first_page:false,
                     link_to: "javascript:void(0)"
                 });
-            }, false, "POST", JSON.stringify(query)).then(closeLoading);
+            }, false, "POST", JSON.stringify(query)).done(closeLoading).fail(function(){ 
+                showLoading("Not found issue".fontcolor("red"), true);
+                window.setTimeout(closeLoading, 1000);});
 };
 
 
@@ -325,8 +345,8 @@ var submitReport = function(form){
      reportObj.userId = $("#curUser").data().userId;
     //var reportObj = {"reports": reports, "userId":$("#curUser").data().userId};
     $.post("api/v1/jira/worklog",  JSON.stringify(reportObj)).done(function(data){
-        showLoading(data, true);
-        resetForm(form);
+        showLoading("submit success", true);
+        resetForm(data, form);
         window.setTimeout(closeLoading, 3000);
     }).fail(function(){
         showLoading("Worklog failed, Please try again later!".fontcolor("red"), true);
@@ -335,17 +355,30 @@ var submitReport = function(form){
    return false;
 };
 
-function resetForm(form){
+function resetForm(data, form){
     form.reset();
     $("#reports table tbody tr").each(function(){
         var $tr = $(this);
         if ($tr.is(":hidden")) {
             $tr.remove();
         } else{
+            if($tr.data().action === "create"){
+                $tr.data("worklogId",  findLodId(data, $tr.data().key));
+            }
             $tr.data().action = "update";
         }
     });
-}
+};
+
+function findLodId(data, issue){
+    var responseObj = eval(data);
+    for (var i = 0; i < responseObj.length; i++) {
+        if (responseObj[i].issue === issue) {
+            return responseObj[i].id;
+        }
+    }
+    return 0;
+};
 
 var buildItem = function(item$, action){
     //var item$ = $(item);
@@ -433,8 +466,7 @@ var loadTodayIssues = function(init){
     function(data){
        //console.log(data);
         if (data.length === 0) {
-            init();
-            return;
+            return searchOldLogedIssue(init);
         }
 
         var keys = [];
@@ -463,11 +495,38 @@ var initInterface= function(data, jira_data) {
         reportObj = worklog.getReportObj(objId);
         reportObj.find("th").html('<p class="issue-summary"><a href="'+getBrowseUrl(objId)+'" target="_blank">'
             +objId+'</a><i style="display: block;">'+ formatSummary(findIssue(jira_data.issues, objId).fields.summary || "") +'</i></p>');
-        reportObj.find("textarea").val(data[i].content);
-        reportObj.find("input[name=timeSpent]").val(data[i].timeSpent);
+        reportObj.find("textarea").val(data[i].content || "").textareaAutoResize(worklog.autoResizeOption);
+        reportObj.find("input[name=timeSpent]").val(data[i].timeSpent || "");
         reportObj.appendTo("#report-tb").data({key:objId, worklogId:data[i].worklogId + "", action:"update"});
         worklog.global.selected.push(objId);
     }
+    
+};
+
+var initPrevInterface= function(data, jira_data) {
+    var len = data.length, reportObj = false, objId;
+    for (var i = 0; i < len; i++) {
+        objId = data[i].issue;
+        reportObj = worklog.getReportObj(objId);
+        reportObj.find("th").html('<p class="issue-summary"><a href="'+getBrowseUrl(objId)+'" target="_blank">'
+            +objId+'</a><i style="display: block;">'+ formatSummary(findIssue(jira_data.issues, objId).fields.summary || "") +'</i></p>');
+        reportObj.appendTo("#report-tb").data({key:objId, action:"create"});
+        reportObj.find("textarea").textareaAutoResize(worklog.autoResizeOption);
+        worklog.global.selected.push(objId);
+    }
+    
+};
+
+var initInterfaceHistory= function(jira_data) {
+    var len = jira_data.issues.length, reportObj = false;
+    $.each(jira_data.issues, function(){
+        reportObj = worklog.getReportObj(this.key);
+        reportObj.find("th").html('<p class="issue-summary"><a href="'+getBrowseUrl(this.key)+'" target="_blank">'
+            +this.key+'</a><i style="display: block;">'+ (this.fields.summary || "") +'</i></p>');
+        reportObj.appendTo("#report-tb").data({key:this.key, action:"create"});
+        reportObj.find("textarea").textareaAutoResize(worklog.autoResizeOption);
+        worklog.global.selected.push(this.key);
+    });
     
 };
 
@@ -495,6 +554,39 @@ var formatSummary = function(summary){
         }
     } 
     return summary;
+};
+
+//"assignee=hh49 and issueFunction in workLogged('before 2015/08/5 by hh49')"
+//issueFunction in workLogged('after -1w by hh49')
+
+function searchOldLogedIssue(init){
+    sendAjax("api/v1/issue/prev/"+$("#curUser").data().userId,
+     function(){
+        showLoading("Init interface, please waiting...");
+    },
+    function(data){
+        if (data.length === 0) {
+            var curUser = $("#curUser").data().name;
+            var jql = "assignee = "+ curUser +" and issueFunction in workLogged('after -1d by " + curUser +"') and status != Closed";
+            var query = {jql:jql ,fields:["id", "key", "summary"]};
+            return searchIssues(query, initInterfaceHistory).done(init).fail(init);
+        }
+
+        var keys = [];
+        $.each(data, function(){
+            keys.push(this.issue);
+        });
+
+        var jql = "key in ('" + keys.join("','") + "') order by created, priority desc";
+        var query = {jql:jql ,fields:["id", "key", "summary"]};
+        searchIssues(query, function(jira_data){
+            initPrevInterface(data, jira_data);
+        }).then(function(){
+            init();
+        });
+    }, false)
+
+    
 };
 
 var setUser = function(data){

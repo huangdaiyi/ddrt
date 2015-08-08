@@ -4,7 +4,8 @@
          get_today_days/0, get_days/3, get_days/1,
          days_to_date/1, days_to_str_date/1, get_str_today/0,
          string_to_binary/1, binary_to_string/1,
-         time_to_utc_string/1, get_value/2, get_value/3]).
+         time_to_utc_string/1, get_value/2, get_value/3,
+         get_orignal_value/2, get_orignal_value/3, get_jira_url/0]).
 -include ("include/ddrt.hrl").
 
 build_report_body(Reports) ->
@@ -117,3 +118,29 @@ get_value(Key,Lists,Default) ->
         Value ->
             Value
         end.
+
+get_orignal_value(Key,Lists) ->
+    case proplists:get_value(Key,Lists,undefined) of
+    undefined -> throw({termination, 400, [], <<>>});
+    Value -> Value
+    end.
+
+get_orignal_value(Key,Lists,Default) ->
+    case proplists:get_value(Key,Lists,undefined) of
+        undefined ->
+            Default;
+        Value ->
+            Value
+        end.
+
+
+get_jira_url()->
+    {ok, JiraUrl} = neg_hydra:get_env(jira_address, "http://jira"),
+    JiraUrl.
+
+get_crl_comment(Comment, WorklogId) when Comment =:= [] ->
+    lists:flatten(io_lib:format("[AUTO#~s]work in JIRA"， [WorklogId]));
+get_crl_comment(Comment, WorklogId) ->
+    lists:flatten(io_lib:format("[AUTO#~s]~s"， [WorklogId, Comment])).
+
+

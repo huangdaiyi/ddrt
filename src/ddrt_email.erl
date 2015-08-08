@@ -18,9 +18,10 @@ send_remind_2([#email_list{email = Email, user_name = User}| RestUsers],  SendTi
                        source = string:join(["template", TemplateName], "/"),
                        compile_opts = [],
                        render_vars =
-                           [{title, <<"Daily Report Remind">>}, {user, User},
+                           [{user, User},
                             {report_url, list_to_binary(ReportUrl)},
                             {send_time, list_to_binary(SendTime)}]},
+    %{title, <<"Daily Report Remind">>},
     Body = ddrt_runder:run(T),
     Subject = "(Info)Submit Daily Report Remind " ++
                 ddrt_utils:get_str_today(),
@@ -104,10 +105,11 @@ get_report_days(Day, Num, Acct) ->
 
 flatten_reports_by_day(Reports) ->
   lists:foldl(fun(#report_mode{date = Date} = R, Acct) ->
-      %Key = ddrt_utils:get_days(Date),
       dict:update(ddrt_utils:get_days(Date), 
-        fun(V) -> V#report_mode{content =list_to_binary(binary_to_list(V#report_mode.content) ++ "<br />" ++ "<b>"++ binary_to_list(R#report_mode.issue) ++ "</b> <br />" ++ binary_to_list(R#report_mode.content))} end,
-        R#report_mode{content = list_to_binary( "<b>" ++ binary_to_list(R#report_mode.issue) ++ "</b> <br />" ++ binary_to_list(R#report_mode.content))}, Acct)
+        %%<<"<a href='">>/bits, list_to_binary(get_jira_url())/bits, <<"/">>, (R#report_mode.issue)/bits,  << "'>" >>, (R#report_mode.issue)/bits, <<"</a> <br />">>/bits,
+        %fun(V) -> V#report_mode{content = << (list_to_binary(ddrt_utils:format_data_line(V#report_mode.content)))/bits, <<"<br />">>/bits, <<"<b>">>/bits, (R#report_mode.issue)/bits ,<<"</b> <br />">>/bits, (R#report_mode.content)/bits >>} end,
+        fun(V) -> V#report_mode{content = << (list_to_binary(ddrt_utils:format_data_line(V#report_mode.content)))/bits, <<"<br />">>/bits, <<"<a class='issue' href='">>/bits, (list_to_binary(ddrt_utils:get_jira_url()))/bits, <<"/browse/">>/bits, (R#report_mode.issue)/bits,  << "'>" >>/bits, (R#report_mode.issue)/bits, <<"</a> <br />">>/bits, (list_to_binary(ddrt_utils:format_data_line(R#report_mode.content)))/bits >>} end,
+        R#report_mode{content = << <<"<a class='issue' href='">>/bits, (list_to_binary(ddrt_utils:get_jira_url()))/bits, <<"/browse/">>/bits, (R#report_mode.issue)/bits,  << "'>" >>/bits, (R#report_mode.issue)/bits, <<"</a> <br />">>/bits, (list_to_binary(ddrt_utils:format_data_line(R#report_mode.content)))/bits >>}, Acct)
   end, dict:new(), Reports).
 
 fill_reports(Reports, User, Days) ->

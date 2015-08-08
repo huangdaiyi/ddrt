@@ -21,6 +21,10 @@
 
 -record(scheduling, {id, name, scheduling_time, type}).
 
+-record(history_issue, {use_id, issue}).
+
+%-record (dailyhours, {task_execute_id, date, spend_time, activity, created, created_user_id, created_user_name, process_model_id, task_id, task_name, common_process_id, phase, task_type}).
+
 -record(template_opts, {
           module = template_parse,
           source,

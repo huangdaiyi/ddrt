@@ -42,6 +42,10 @@ on d.group_id=gu.group_id where gu.group_id=? and d.name = ?">> },
 				INNER JOIN domains AS d ON gu.domain_id = d.id 
 				WHERE r.`date` BETWEEN DATE_SUB(?,INTERVAL ? DAY) AND DATE_ADD(?,INTERVAL 1 DAY) AND g.id = ? AND u.type = 'R'">>},
 
+{create_history, <<"REPLACE INTO `history_issues` (`issue_key`,`user_id`,`day_num`,`create_at`) VALUES(?, ?, ?, now()); ">>},
+
+{get_prev_issues, <<"SELECT `issue_key` AS issue,`user_id` FROM `history_issues`  WHERE `user_id` = ? AND `day_num` = (SELECT MAX(`day_num`) FROM `history_issues` WHERE `user_id`= ?);">>},
+
 {get_user_report, <<"SELECT u.id AS user_id, u.email, r.`worklog_id`, r.`content`, r.`date`, r.`time_spent`, r.`issue_name` AS issue,
  g.`name` AS group_name, g.template, gu.receive_type, d.`name` AS domain_name, d.id AS domain_id
 				FROM reports AS r INNER JOIN users AS u ON u.id = r.user_id 

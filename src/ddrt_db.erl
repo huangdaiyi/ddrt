@@ -8,7 +8,7 @@
 
 -export([get_not_report_emails/1,get_not_report_emails/2, get_group_report_user/1]).
 -export([get_scheduling/1, check_today_report_by_email/1, get_user_by_email/1, get_user_report/3]).
--export ([update_report/5, delete_report/2]).
+-export ([update_report/5, delete_report/2, create_history_issue/2, get_prev_issues/1]).
 
 
 %%
@@ -50,7 +50,9 @@ get_record_info(group_user) ->
 get_record_info(group_report_user) ->
     record_info(fields, group_report_user);
 get_record_info(scheduling) ->
-    record_info(fields, scheduling).
+    record_info(fields, scheduling);
+get_record_info(history_issue) ->
+    record_info(fields, history_issue).
 
 update(Pre, Params)
     when is_atom(Pre), is_list(Params) ->
@@ -86,28 +88,34 @@ select(Pre, Record, Params)
           emysql:as_record(Result, Record, get_record_info(Record))
     end.
 
-add_report(UserID, Content, Datetime, TimeSpent, Issue, WorklogId) -> update(add_report, [UserID, Content, Datetime,TimeSpent, Issue, WorklogId]).
+add_report(UserId, Content, Datetime, TimeSpent, Issue, WorklogId) -> update(add_report, [UserId, Content, Datetime,TimeSpent, Issue, WorklogId]).
 
-update_report(Content, Date, TimeSpent, WorklogId, UserID) ->
-    update(update_report, [Content, Date, TimeSpent, WorklogId, UserID]).
+update_report(Content, Date, TimeSpent, WorklogId, UserId) ->
+    update(update_report, [Content, Date, TimeSpent, WorklogId, UserId]).
 
-delete_report([], _UserID) -> ok;
-delete_report(WorklogId, UserID) when is_number(WorklogId) ->
-    update(delete_report, [WorklogId, UserID]);
+delete_report([], _UserId) -> ok;
+delete_report(WorklogId, UserId) when is_number(WorklogId) ->
+    update(delete_report, [WorklogId, UserId]);
 
-delete_report([F | R], UserID) ->
-    update(delete_report, [list_to_binary(F), UserID]),
-    delete_report(R, UserID).
+delete_report([F | R], UserId) ->
+    update(delete_report, [ddrt_utils:string_to_binary(F), UserId]),
+    delete_report(R, UserId).
 
+
+create_history_issue(Issue, UserId) -> 
+    update(create_history, [Issue, UserId, ddrt_utils:get_today_days()]).
+
+get_prev_issues(UserId) -> 
+    select(get_prev_issues, history_issue, [UserId, UserId]).
 
 
 add_group(Params) -> update(add_group, Params).
 
-check_today_report(UserID) ->
+check_today_report(UserId) ->
     BinDay =
         ddrt_utils:datetime_format(calendar:local_time()),
     select(check_today_report, id,
-           [UserID, BinDay, BinDay]).
+           [UserId, BinDay, BinDay]).
 
 check_today_report_by_email(Email) ->
     BinDay =
@@ -140,9 +148,9 @@ get_all_reports(Date, DayNum, GroupID) ->
     Result = select(get_all_reports, report_mode, Params),
     Result.
 
-get_user_report(Date, DayNum, UserID) ->
+get_user_report(Date, DayNum, UserId) ->
     BinDay = ddrt_utils:datetime_format(Date),
-    Params = [BinDay, BinDay, DayNum, UserID],
+    Params = [BinDay, BinDay, DayNum, UserId],
     Result = select(get_user_report, report_mode, Params),
     Result.
 
