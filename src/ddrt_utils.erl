@@ -5,7 +5,7 @@
          days_to_date/1, days_to_str_date/1, get_str_today/0,
          string_to_binary/1, binary_to_string/1,
          time_to_utc_string/1, get_value/2, get_value/3,
-         get_orignal_value/2, get_orignal_value/3, get_jira_url/0]).
+         get_orignal_value/2, get_orignal_value/3, get_jira_url/0, get_crl_comment/2]).
 -include ("include/ddrt.hrl").
 
 build_report_body(Reports) ->
@@ -139,8 +139,8 @@ get_jira_url()->
     JiraUrl.
 
 get_crl_comment(Comment, WorklogId) when Comment =:= [] ->
-    lists:flatten(io_lib:format("[AUTO#~s]work in JIRA"， [WorklogId]));
+    lists:flatten(io_lib:format("[AUTO#~s]work in JIRA", [WorklogId]));
 get_crl_comment(Comment, WorklogId) ->
-    lists:flatten(io_lib:format("[AUTO#~s]~s"， [WorklogId, Comment])).
+    lists:flatten(io_lib:format("[AUTO#~s]~s", [WorklogId, Comment])).
 
 

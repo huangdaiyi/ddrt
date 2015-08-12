@@ -158,13 +158,15 @@ do_post(["api", "v1", "jira", "worklog"], _DocRoot, Req) ->
             throw({termination, 400, [], <<"userid error">>});
         Id -> Id
     end,
-
+    Username = proplists:get_value("username", Data, ""), 
     CreateReports = proplists:get_value("create", Data),
     UpdateReports = proplists:get_value("update", Data),
     DeleteReprots = proplists:get_value("delete", Data),
     Datetime = proplists:get_value("datetime", Data, calendar:local_time()),
 
     ReprotCreate = create_reports(CreateReports, UserId, Datetime, Req),
+    ddrt_crl:build_create_params(ReprotCreate, UserId, Username),
+
     ReprotUpdate = update_reports(UpdateReports, UserId, Datetime, Req),
     ok = delete_reports(DeleteReprots, UserId, Req),
     {200, [{"Content-Type","JSON"}], rfc4627:encode(ReprotCreate ++ ReprotUpdate)};
@@ -284,8 +286,9 @@ create_reports(CreateReports, UserId, Datetime, Req) ->
                 ok ->  ddrt_db:create_history_issue(Key, UserId);
                  _ ->  throw({termination, 500, [], <<"Failed">>})
             end,
-            {obj, [{"issue", Key}, {"id", WorklogId}]}
+            {obj, [{"issue", Key}, {"id", WorklogId} | R]}
     end || {obj, R} <- CreateReports].
+
 
 
 update_reports([], _, _, _) -> [];
