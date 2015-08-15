@@ -1,15 +1,15 @@
 -module (ddrt_mssql).
 -behaviour(gen_server).
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, code_change/3,  terminate/2]).
--export ([start_link/1, execute/3, execute_sync/3]).
+-export ([start_link/2, execute/3, execute_sync/3]).
 -record (connect, {connect, handler}).
 
 %%%================================================
 %%% public api
 %%%================================================
-start_link(Conn) ->
+start_link(Name, Conn) ->
 	%io:format("~p",[Conn]),
-    gen_server:start_link(?MODULE, [Conn] , []).
+    gen_server:start_link({local, Name}, ?MODULE, [Conn] , []).
 
 execute(Worker, Sql, Params) ->
 	gen_server:call(Worker, {exetuce, Sql, Params}).
@@ -21,7 +21,6 @@ execute_sync(Worker, Sql, Params) ->
 %%% gen_server callbacks
 %%%================================================
 init([Conn]) ->
-	%io:format("~p",[Conn]),
     {ok, #connect{connect=Conn}, 0}.
 
 handle_call({exetuce, Sql, Params}, _From, State) ->
@@ -50,7 +49,8 @@ code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 
 terminate(_Reason, _State) ->
-	 ok.
+	%%ddrt_mssql_mgr:update(self(), Conn),
+	ok.
 
 
 exetuce_odbc(#connect{handler=ConnectRef, connect=Conn} = Connect, Sql, Params) ->

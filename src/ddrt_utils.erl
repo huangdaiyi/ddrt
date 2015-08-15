@@ -5,7 +5,8 @@
          days_to_date/1, days_to_str_date/1, get_str_today/0,
          string_to_binary/1, binary_to_string/1,
          time_to_utc_string/1, get_value/2, get_value/3,
-         get_orignal_value/2, get_orignal_value/3, get_jira_url/0, get_crl_comment/2]).
+         get_orignal_value/2, get_orignal_value/3, get_jira_url/0, get_crl_comment/2, 
+         to_float/1, to_sql_wvarchar/1, get_mssql_day_string/0]).
 -include ("include/ddrt.hrl").
 
 build_report_body(Reports) ->
@@ -99,6 +100,15 @@ time_to_utc_string({MegaSecs, Secs, MicroSecs}) ->
                                 [Year, Month, Day, Hour, Minute, Second,
                                  MicroSecs])).
 
+% get_mssql_date_string() ->
+%  {{Y,Mo,D},{H,Mi, S}} = erlang:localtime(), 
+%  io_lib:format("~4.10.0B-~2.10.0B-~2.10.0B ~2.10.0B:~2.10.0B:~2.10.0B", [Y, Mo, D, H, Mi, S]).
+
+get_mssql_day_string() ->
+ {{Y,Mo,D},_} = erlang:localtime(), 
+ lists:flatten(io_lib:format("~4.10.0B-~2.10.0B-~2.10.0B ~2.10.0B:~2.10.0B:~2.10.0B", [Y, Mo, D, 0, 0, 0])).
+
+
 get_value(Key,Lists) ->
     case proplists:get_value(Key,Lists,undefined) of
         undefined ->
@@ -143,4 +153,13 @@ get_crl_comment(Comment, WorklogId) when Comment =:= [] ->
 get_crl_comment(Comment, WorklogId) ->
     lists:flatten(io_lib:format("[AUTO#~s]~s", [WorklogId, Comment])).
 
+to_float(Bin) when is_binary(Bin) ->
+    to_float(binary_to_list(Bin));
+to_float(Str) ->
+    case string:to_float(Str) of
+        {error,no_float} -> float(list_to_integer(Str));
+        {F,_Rest} -> F
+    end.
 
+to_sql_wvarchar(Content) ->
+    unicode:characters_to_binary(Content, utf8, {utf16, little}).

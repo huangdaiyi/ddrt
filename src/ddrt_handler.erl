@@ -153,22 +153,18 @@ do_post(["api", "v1", "jira", "search"], _DocRoot, Req) ->
 do_post(["api", "v1", "jira", "worklog"], _DocRoot, Req) ->
     {obj, Data} = Req:json_body(),
     %%[{Data, _}] = Req:call(parse_post),
-    UserId = case proplists:get_value("userId", Data) of
-        undefined ->
-            throw({termination, 400, [], <<"userid error">>});
-        Id -> Id
-    end,
+    UserId =  ddrt_utils:get_value("userId", Data),
+    LoginId = ddrt_utils:get_value("loginId", Data),
     Username = proplists:get_value("username", Data, ""), 
-    CreateReports = proplists:get_value("create", Data),
-    UpdateReports = proplists:get_value("update", Data),
-    DeleteReprots = proplists:get_value("delete", Data),
+    CreateReports = proplists:get_value("create", Data, []),
+    UpdateReports = proplists:get_value("update", Data, []),
+    DeleteReprots = proplists:get_value("delete", Data, []),
     Datetime = proplists:get_value("datetime", Data, calendar:local_time()),
 
-    ReprotCreate = create_reports(CreateReports, UserId, Datetime, Req),
-    ddrt_crl:build_create_params(ReprotCreate, UserId, Username),
-
-    ReprotUpdate = update_reports(UpdateReports, UserId, Datetime, Req),
+    ReprotCreate = create_reports(CreateReports, UserId, LoginId, Username, Datetime, Req),
+    ReprotUpdate = update_reports(UpdateReports, UserId, LoginId, Username, Datetime, Req),
     ok = delete_reports(DeleteReprots, UserId, Req),
+
     {200, [{"Content-Type","JSON"}], rfc4627:encode(ReprotCreate ++ ReprotUpdate)};
     %{200, [], <<"Success">>};
 
@@ -249,6 +245,7 @@ do_delete(_, _DocRoot, _Req) ->
 %%%================================================
 %%% head request
 %%%================================================
+
 do_head(_Any, _DocRoot, _Req) ->
     {404, [], <<>>}.
 
@@ -256,6 +253,7 @@ do_head(_Any, _DocRoot, _Req) ->
 %%%================================================
 %%% private method
 %%%================================================
+
 get_user_by_email(Email)->
     case ddrt_db:get_user_by_email(Email) of
         [] -> throw({termination, 403,  [], <<"user not exist">>});
@@ -270,9 +268,7 @@ make_user_reponse(JiraUserInfo) ->
              {"domainName",DdrtUser#userentity.domain_name} | JiraUser]}).
 
 
-create_reports([], _, _, _) -> [];
-create_reports(undefined, _, _, _) -> [];
-create_reports(CreateReports, UserId, Datetime, Req) ->
+create_reports(CreateReports, UserId, LoginId, Username, Datetime, Req) ->
     [begin 
             {ok, {obj, Worklog}, _} = case ddrt_jira:worklog(R, Req) of
                 {201, _, LogInfo}  ->  rfc4627:decode(LogInfo);
@@ -286,15 +282,13 @@ create_reports(CreateReports, UserId, Datetime, Req) ->
                 ok ->  ddrt_db:create_history_issue(Key, UserId);
                  _ ->  throw({termination, 500, [], <<"Failed">>})
             end,
-            {obj, [{"issue", Key}, {"id", WorklogId} | R]}
+            ddrt_crl:add_dailyhour([{"id", WorklogId} | R], LoginId, Username, Req),
+            {obj, [{"issue", Key}, {"id", WorklogId}]}
     end || {obj, R} <- CreateReports].
 
 
 
-update_reports([], _, _, _) -> [];
-update_reports(undefined, _, _, _) -> [];
-update_reports(UpdateReports, UserId, Datetime, Req) ->
-
+update_reports(UpdateReports, UserId, LoginId, Username, Datetime, Req) ->
     [ begin 
 
         WorklogId = ddrt_utils:get_orignal_value("id", R),
@@ -304,24 +298,27 @@ update_reports(UpdateReports, UserId, Datetime, Req) ->
                 Content = proplists:get_value("comment", R, ""),
                 TimeSpent = proplists:get_value("timeSpent", R, 8),
                 case ddrt_db:update_report(Content, Datetime,TimeSpent, WorklogId, UserId) of
-                    ok -> {obj, [{"issue", Key}, {"id", WorklogId}]};
+                    ok -> 
+                        ddrt_crl:update_dailyhour(TimeSpent, Content, WorklogId),
+                        {obj, [{"issue", Key}, {"id", WorklogId}]};
                      _ -> throw({termination, 500, [], <<"Failed">>})
                 end; 
             {404, _, _} -> 
-                [Item] = create_reports([{obj, proplists:delete("id", R)}], UserId, Datetime, Req),
+                [Item] = create_reports([{obj, proplists:delete("id", R)}], UserId, LoginId, Username, Datetime, Req),
                 ddrt_db:delete_report([WorklogId], UserId), Item;
             {StatusCode, Headers, Message} -> throw({termination, StatusCode, Headers, Message})
         end
     end || {obj, R} <- UpdateReports].
 
-delete_reports([], _, _) -> ok;
-delete_reports(undefined, _, _) -> ok;
+
 delete_reports(DeleteReprots, UserId, Req) ->
     WorklogIds =  [ begin 
             IssueId = ddrt_utils:get_value("key", R),
             LogId = ddrt_utils:get_value("id", R),
             case ddrt_jira:delete_log(IssueId, LogId, Req) of
-                {StatusCode, _, _} when StatusCode =:=204; StatusCode =:= 404 -> LogId;
+                {StatusCode, _, _} when StatusCode =:=204; StatusCode =:= 404 ->
+                    ddrt_crl:delete_dailyhour(LogId),
+                    LogId;
                 {StatusCode, _, _} -> throw({termination, StatusCode, [],  
                     list_to_binary(lists:flatten(io_lib:format("delete failed, issue ~s, worklog id ~s", [IssueId, LogId])))})
             end
