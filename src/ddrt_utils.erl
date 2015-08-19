@@ -161,5 +161,7 @@ to_float(Str) ->
         {F,_Rest} -> F
     end.
 
+% to_sql_wvarchar(Content) when is_list(Content) ->
+%     to_sql_wvarchar(uncode:charactor_to_binary(Content, latin1, utf8));
 to_sql_wvarchar(Content) ->
     unicode:characters_to_binary(Content, utf8, {utf16, little}).

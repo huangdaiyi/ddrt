@@ -62,5 +62,5 @@ exetuce_odbc(#connect{handler=ConnectRef, connect=Conn} = Connect, Sql, Params) 
 	end.
 
 get_connect(Conn) ->
-	{ok, ConnectRef} = odbc:connect(Conn, []),
+	{ok, ConnectRef} = odbc:connect(Conn, [{binary_strings, on}]),
 	ConnectRef.

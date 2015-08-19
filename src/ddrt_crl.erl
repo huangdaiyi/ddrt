@@ -20,7 +20,7 @@
 
 update_dailyhour(TimeSpent, Content, WorklogId) ->
 	ddrt_mssql_mgr:execute_sync(?UPDATE_DAILYHOUR(ddrt_utils:binary_to_string(WorklogId)), [
-		{{sql_varchar, 23},[ddrt_utils:get_mssql_day_string()]},
+		{{sql_varchar, 23},[list_to_binary(ddrt_utils:get_mssql_day_string())]},
 		{{sql_decimal,15,2},[ddrt_utils:to_float(TimeSpent)]},
 		{{sql_wvarchar,200},  [ddrt_utils:to_sql_wvarchar(ddrt_utils:get_crl_comment(Content, WorklogId))]}]).
 	
@@ -37,10 +37,10 @@ add_dailyhour(DailyHour, LoginId, UserName, Req) ->
 	Content = proplists:get_value("comment", DailyHour, ""),
 	Activity = ddrt_utils:get_crl_comment(Content, WorklogId),
 	
-    Params = [{{sql_varchar, 23},[ddrt_utils:get_mssql_day_string()]},
+    Params = [{{sql_varchar, 23},[list_to_binary(ddrt_utils:get_mssql_day_string())]},
 			  {{sql_decimal,15,2},[TimeSpent]},
               {{sql_wvarchar,200},  [ddrt_utils:to_sql_wvarchar(Activity)]},
-              {{sql_char,20},[LoginId]},
+              {{sql_char,20},[ddrt_utils:string_to_binary(LoginId)]},
               {{sql_wvarchar,50}, [ddrt_utils:to_sql_wvarchar(NewUserName)]}],
 
     case get_params(ddrt_utils:get_value("key", DailyHour), LoginId ,Req) of
@@ -120,7 +120,7 @@ get_parent_issue(Key, Req, Activity) ->
 get_params_common_procid(CommonProcessId, Phase) ->
 	[{sql_integer,[5733]},
 	{sql_integer,[105]},
-	{{sql_varchar,50},["Developers Coding"]},
+	{{sql_varchar,50},[ <<"Developers Coding">>]},
 	{sql_integer,[CommonProcessId]},
     {sql_integer,[ Phase ]},
     {sql_integer,[31]}].
@@ -128,7 +128,7 @@ get_params_common_procid(CommonProcessId, Phase) ->
 get_params_by_crlno_as_common_procid(CrlNo) ->
 	[{sql_integer,[2]},
 	{sql_integer,[0]},
-	{{sql_varchar,50},["Key User"]},
+	{{sql_varchar,50},[<<"Key User">>]},
 	{sql_integer,[CrlNo]},
     {sql_integer,[-1]},
     {sql_integer,[-1]}].
