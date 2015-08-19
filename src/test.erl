@@ -36,19 +36,20 @@ insert_crl() ->
     odbc:param_query(ConnectRef, ?INSERT_MAP, Params).
 
 
+
 insert() ->
 	 
-	Conn = "DRIVER={SQL Server};SERVER=s7kms01;DATABASE=CRL2006;UID=CrlReadOnly;PWD=Git123!@#;Client_CSet=UTF-8",
+	Conn = "DRIVER={SQL Server};SERVER=s7kms01;DATABASE=CRL2006;UID=CrlReadOnly;PWD=Git123!@#;CharacterSet=UTF-8",
 	%Conn = "DSN=worklog;DATABASE=CRL2006;UID=CrlReadOnly;PWD=Git123!@#;Client_CSet=UTF-8",
 	ConnectRef =  get_connect(Conn),
 
-	Params = [ {{sql_varchar, 23},[ddrt_utils:get_mssql_day_string()]}, {{sql_decimal,15,2},[ddrt_utils:to_float("8")]},
-                                     {{sql_wvarchar,200},  [ddrt_utils:to_sql_wvarchar("[AUTO#419290]wefsdafsdfsdfds中文测试")]},
-                                     {{sql_char,20},["hh49"]},
+	Params = [ {{sql_varchar, 23},[list_to_binary(ddrt_utils:get_mssql_day_string())]}, {{sql_decimal,15,2},[ddrt_utils:to_float("8")]},
+                                     {{sql_wvarchar,200},  [list_to_binary(ddrt_utils:to_sql_wvarchar("[AUTO#419290]wefsdafsdfsdfds中文测试"))]},
+                                     {{sql_char,20},[<<"hh49">>]},
                                      {{sql_wvarchar,50},  [<<"中国"/utf8>>]},
                                      {sql_integer,[2]},
                                      {sql_integer,[105]},
-                                     {{sql_varchar,50},["Developers Coding"]},
+                                     {{sql_varchar,50},[<<"Developers Coding">>]},
                                      {sql_integer,[1009292]},
                                      {sql_integer,[24]},
                                      {sql_integer,[31]}],
@@ -58,5 +59,5 @@ insert() ->
     
 
  get_connect(Conn) ->
-	{ok, ConnectRef} = odbc:connect(Conn, []),
+	{ok, ConnectRef} = odbc:connect(Conn, [{binary_strings, on}]),
 	ConnectRef.
