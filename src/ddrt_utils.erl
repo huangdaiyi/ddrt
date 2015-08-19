@@ -149,9 +149,9 @@ get_jira_url()->
     JiraUrl.
 
 get_crl_comment(Comment, WorklogId) when Comment =:= [] ->
-    lists:flatten(io_lib:format("[AUTO#~s]work in JIRA", [WorklogId]));
+    << <<"[AUTO#">>/binary, WorklogId/binary, <<"]work in JIRA">>/binary>>;
 get_crl_comment(Comment, WorklogId) ->
-    lists:flatten(io_lib:format("[AUTO#~s]~s", [WorklogId, Comment])).
+    << <<"[AUTO#">>/binary, WorklogId/binary, Comment/binary>>.
 
 to_float(Bin) when is_binary(Bin) ->
     to_float(binary_to_list(Bin));
