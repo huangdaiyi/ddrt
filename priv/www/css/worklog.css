@@ -172,10 +172,10 @@
                 color: red;
                 margin: 10px 0 0 0;
             }
-            #add-other{
+            #add-other span.btn{
                 cursor: pointer;
                 font-weight: bold;
             }
-            #add-other:hover{
+            #add-other span.btn:hover{
                 color: #000;
             }

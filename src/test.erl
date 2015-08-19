@@ -37,16 +37,7 @@ insert_crl() ->
 
 
 insert() ->
-	 %% ([TaskExecuteId],[Date],[SpendTime],[Activity],[Created],[CreatedUserId],[CreatedUserName],
-            %%[ProcessModelId],[TaskId],[TaskName],[CommonProcessId],[Phase],[TaskType]
-        %%ddrt_crl:add_dailyhour(ddrt_utils:get_str_today(), TimeSpent, ddrt_utils:get_crl_comment(Content,WorklogId),user,  ),
- %    Date = ddrt_utils:get_str_today(),
-
-	% {TimeSpent, _} = string:to_float(ddrt_utils:get_value("timeSpent", R, "8")),
-	% WorklogId = proplists:get_value("id", R),
-	% Content = proplists:get_value("comment", R, ""),
-	% Activity = ddrt_utils:get_crl_comment(Content, WorklogId),
-	%Date = ddrt_utils:get_str_today(),
+	 
 	Conn = "DRIVER={SQL Server};SERVER=s7kms01;DATABASE=CRL2006;UID=CrlReadOnly;PWD=Git123!@#;Client_CSet=UTF-8",
 	%Conn = "DSN=worklog;DATABASE=CRL2006;UID=CrlReadOnly;PWD=Git123!@#;Client_CSet=UTF-8",
 	ConnectRef =  get_connect(Conn),

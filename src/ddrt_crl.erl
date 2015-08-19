@@ -140,7 +140,7 @@ get_common_crlno(FixVersion, Author, Activity) ->
 	%{selected, _, [CrlNO]} = ,
 	case ddrt_mssql_mgr:execute(?GET_COMMON_PROCESSID, [{{sql_wvarchar, 200}, [ddrt_utils:to_sql_wvarchar(FixVersion)]}]) of
 		{selected, _, []} -> add_commonprocess_map(FixVersion, Author, Activity);
-		{selected, _, [CrlNo]} -> CrlNo
+		{selected, _, [{CrlNo}]} -> CrlNo
 	end.
 
 get_common_crlno(Author, undefined) -> 
@@ -174,7 +174,7 @@ get_activity_crlno_mapping_by_group(GroupName, Activity) ->
 
 get_internal_key_crlno(GroupName) ->
 	case ddrt_mssql_mgr:execute(?GET_CRLNO_BY_GROUP, [{{sql_varchar, 40}, [GroupName]}, {{sql_varchar, 40}, ["internal"]}]) of
-		{selected, _, []} -> throw({termination, 400, [], "The activityMap does not contain internal key"});
+		{selected, _, []} -> not_synchronized; %throw({termination, 400, [], "The activityMap does not contain internal key"});
 		{selected, _, [{CrlNo}|_]} -> list_to_integer(CrlNo)
 	end.
 

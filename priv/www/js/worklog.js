@@ -109,6 +109,7 @@ $(document).ready(function(){
         }else{
             if (reportObj.data().action === "delete") {
                 reportObj.append(reportObj.data().children);
+                reportObj.data().action = "update";
                 reportObj.show();
             } 
         }
@@ -177,7 +178,11 @@ $(document).ready(function(){
         });
     });
 
-    $("#add-other").on("click", function(){
+    $("#add-other input[type=text]").on("keydown", function(e){
+        e.which === 13 && $(this).next().trigger("click");
+    });
+
+    $("#add-other span.btn").on("click", function(){
         var $inputTxt = $(this).prev();
         var keyword = $inputTxt.val();
         if ($.trim(keyword) === "") {
