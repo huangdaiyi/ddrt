@@ -47,7 +47,8 @@ request(Method, Paths, DocRoot, Req) ->
 
 validate(Method, SafePaths, _DocRoot, Req) ->
     case {Method, SafePaths} of
-        {get, P} when P =:=[]; P =:= ["index.html"] ->
+        {post, [_, _, _, "login"]} -> ok;
+        {Method, _} when Method =:= post; Method =:= put; Method =:= delete ->
             check_login_jira(Req);
         _Any ->
             ok

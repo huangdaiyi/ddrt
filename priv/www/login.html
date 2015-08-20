@@ -154,30 +154,10 @@ input[type="number"].no-spin-button::-webkit-outer-spin-button {
                 console.log("login out ok!")
             });
         });
-
-        // $("#get_project").on("click", function(){
-        //    $.getJSON("http://jira/rest/api/2/project", function(data){
-        //         console.log(JSON.stringify(data));
-        //    });
-        // });
-
-
-        // $("#user_info").on("click", function(){
-        //    $.getJSON("http://jira/rest/auth/1/session", function(data){
-        //         console.log(JSON.stringify(data));
-        //    });
-        // });
-
-
-        // $("#jira_login").on("click", function(){
-        //    send("http://jira/rest/auth/1/session","POST",{"content-type":"application/json", "Access-Control-Allow-Origin":"*"} ,{username:"hh49",password:"hdy@123123"}, function(data){
-        //         console.log(JSON.stringify(data));
-        //    });
-        // });
     });
 
     var showResponse =  function(responseText, statusText){
-       window.location.href = "/worklog.html"
+       window.location.href = "index.html"
     };
 
     var sendDelete = function(url, headers, success_call){
@@ -203,35 +183,6 @@ input[type="number"].no-spin-button::-webkit-outer-spin-button {
                   }); 
              };
 
-    // ;(function($) {
-    //     $.fn.ddrt_login = function(username, password){
-    //         this.postData = {};
-    //         this.postData.username = username;
-    //         this.password.password = password;
-    //         this.login_url = "api/v1/jira/login";//"http://jira/rest/auth/1/session";
-
-    //         var send = function(data, method){
-    //                     $.ajax({
-    //                           type: Method,
-    //                           url: this.login_url,
-    //                           cache:false,
-    //                           dataType:"json",
-    //                           headers:{"content-type":"application/json"}
-    //                           data:data,
-    //                           success: function(msg){
-    //                               console.log("send success!");
-    //                               console.log(msg);
-    //                           }
-    //                       }); 
-    //                  };
-    //         this.login = function(){
-    //             send(JSON.stringify(postData), "POST");
-    //         };
-
-
-    //     }
-        
-    // })(jquery);
 </script>
 </head>
 <body>
