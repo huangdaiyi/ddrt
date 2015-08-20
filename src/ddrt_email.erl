@@ -26,10 +26,10 @@ send_remind_2([#email_list{email = Email, user_name = User}| RestUsers],  SendTi
     Subject = "(Info)Submit Daily Report Remind " ++
                 ddrt_utils:get_str_today(),
     Cc = "",
-    % Mail = #mail{to = binary_to_list(Email), cc = Cc,
-    %              subject = Subject, body = Body},
-    Mail = #mail{to = "Hardy.D.Huang@newegg.com", cc = "",
-                 subject = Subject, body = Body},
+    Mail = #mail{to = binary_to_list(Email), cc = Cc,
+                  subject = Subject, body = Body},
+    %Mail = #mail{to = "Hardy.D.Huang@newegg.com", cc = "",
+    %             subject = Subject, body = Body},
     spawn(ddrt_mail, send_mail, [Mail]),
     send_remind_2(RestUsers, SendTime).
 
@@ -76,9 +76,9 @@ send_mail(#groups{id = ID, group_name = Name}) ->
                             {columns,
                              generate_colums(Today, DayNum, ["Team Member"])}]},
     Body = ddrt_runder:run(T),
-    Mail = #mail{to = "Hardy.D.Huang@newegg.com", cc = "",
-                 subject = Subject, body = Body},
-    %Mail = #mail{to=To, cc=Cc, subject=Subject, body=Body},
+    %Mail = #mail{to = "Hardy.D.Huang@newegg.com", cc = "",
+    %             subject = Subject, body = Body},
+    Mail = #mail{to=To, cc=Cc, subject=Subject, body=Body},
     spawn(ddrt_mail, send_mail, [Mail]).
 
 get_report_num() ->
@@ -142,44 +142,3 @@ fill_reports(Reports, User, Days) ->
                        ddrt_utils:get_days(Date1) > ddrt_utils:get_days(Date2)
                end,
                NewReports).
-
-% fill_reports(Reports, User, Days) ->
-%     DictReport = flatten_reports_by_day(Reports),
-%     NewReports = if dict:size(DictReport) =:= length(Days) ->
-%                         Reports;
-%                     true ->
-%                         lists:foldl(fun (Day, Acct) ->
-%                                             case lists:any(fun
-%                                                              (#report_mode{date = Date}) ->
-%                                                                  ddrt_utils:get_days(Date) =:= Day;
-%                                                              (_Any) -> false
-%                                                            end,
-%                                                            Reports)
-%                                                 of
-%                                               true -> Acct;
-%                                               false ->
-%                                                   [#report_mode{user_id =
-%                                                                     User#group_user.user_id,
-%                                                                 user_name =
-%                                                                     User#group_user.user_name,
-%                                                                 email =
-%                                                                     User#group_user.email,
-%                                                                 content =
-%                                                                     <<"">>,
-%                                                                 date =
-%                                                                     ddrt_utils:days_to_date(Day),
-%                                                                 receive_type =
-%                                                                     User#group_user.receive_type,
-%                                                                 domain_name =
-%                                                                     User#group_user.domain_name}
-%                                                    | Acct]
-%                                             end
-%                                     end,
-%                                     [], Days)
-%                           ++ Reports
-%                  end,
-%     lists:sort(fun (#report_mode{date = Date1},
-%                     #report_mode{date = Date2}) ->
-%                        ddrt_utils:get_days(Date1) > ddrt_utils:get_days(Date2)
-%                end,
-%                NewReports).

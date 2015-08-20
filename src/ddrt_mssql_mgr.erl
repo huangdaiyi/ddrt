@@ -16,13 +16,17 @@ start_link() ->
 get_worker() -> gen_server:call(?SERVER, get).
 
 execute(Sql, Params) ->
-	{ok, Worker} = get_worker(),
+	Worker = get_worker(),
 	ddrt_mssql:execute(Worker, Sql, Params).
 	
 
 execute_sync(Sql, Params) ->
-	{ok, Worker} = get_worker(),
+	Worker = get_worker(),
 	ddrt_mssql:execute_sync(Worker, Sql, Params).
+
+% update(Pid, ConnectStr) ->
+% 	gen_server:cast(?SERVER, {remove, Pid, ConnectStr}).
+
 
 
 %%%================================================
@@ -38,6 +42,10 @@ handle_call(get, _From, State) ->
 handle_call(_Request, _From, State) ->
     {reply, ok, State}.
 	
+handle_cast({update, Pid, ConnectStr}, #mssql_worker{workers = Workers} = State) ->
+	NewWorkers = update_work(Workers, Pid, ConnectStr),
+	{noreply, State#mssql_worker{workers=NewWorkers}};
+
 handle_cast(_Request, State) ->
     {noreply, State}.
 
@@ -66,18 +74,29 @@ get_worker(#mssql_worker{index = Index, size=Size, workers = Workers} = State) -
 	{lists:nth(CurrentIndex, Workers), State#mssql_worker{index = CurrentIndex}}.
 
 
+update_work(Workers, Pid, ConnectStr) ->
+	RestWorkers = lists:delete(Pid, Workers),
+	{ok, NewWork} = ddrt_mssql_sup:start_child(ConnectStr),
+	[NewWork | RestWorkers].
+
 
 initialize_mssql(Workers, _, Size) when Size < 1 -> Workers; 
 initialize_mssql(Workers, ConnectStr, Size) ->
-	initialize_mssql([ddrt_mssql_sup:start_child(ConnectStr) | Workers], ConnectStr, Size - 1).
+	WorkerName = generate_name(Size),
+	ddrt_mssql_sup:start_child(WorkerName, ConnectStr),
+	initialize_mssql([ WorkerName | Workers], ConnectStr, Size - 1).
 
 parse_config() ->
 	{ok, Config} = neg_hydra:get_env(mssql_pool),
-	ConnectStr = lists:flatten(io_lib:format("DRIVER={SQL Server};SERVER=~s;DATABASE=~s;UID=~s;PWD=~s",
-						[proplists:get_value(host, Config),
-						 proplists:get_value(database, Config),
-						 proplists:get_value(user, Config),
-						 proplists:get_value(password, Config)
-						])),
 
-	{proplists:get_value(size, Config), ConnectStr}.
+	% ConnectStr = lists:flatten(io_lib:format("DRIVER={SQL Server};SERVER=~s;DATABASE=~s;UID=~s;PWD=~s",
+	% 					[proplists:get_value(host, Config),
+	% 					 proplists:get_value(database, Config),
+	% 					 proplists:get_value(user, Config),
+	% 					 proplists:get_value(password, Config)
+	% 					])),
+
+	{proplists:get_value(size, Config), proplists:get_value(connection, Config)}.
+
+generate_name(Num) ->
+	list_to_atom(string:join(["ddrt_mssql", integer_to_list(Num)], "_")).

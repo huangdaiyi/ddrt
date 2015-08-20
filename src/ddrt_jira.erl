@@ -6,6 +6,7 @@
 
 -define (JIRA_TOKEN, "atlassian.xsrf.token").
 -define (JIRA_SESSION, "JSESSIONID").
+%%-define (JIRA_WORKLOG, "http://jira/secure/CreateWorklog.jspa").
 -export ([login/3, login_info/1, login_out/1, project/1, send_http/4, send_http/5]).
 -export ([user_info/2, parse_cookie/1, search/2, get_all_status/1, worklog/2, delete_log/3, edit_log/2]).
 
@@ -114,6 +115,8 @@ send_http(Method, Url, HttpHeaders, Body, Timeout) ->
         {ok, {{_HttpVersion, StatusCode, _Description}, Headers, Content}} -> {ok, StatusCode, Headers, Content};
         {error, _Message} -> throw({error, 500, list_to_binary(io_lib:format("connect ~p failed.", [Url]))})
     end.
+
+
 
 
 % get_header(Key, Req) ->

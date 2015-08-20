@@ -1,86 +1,194 @@
--module (ddrt_crl).
--export ([add_dailyhour/1, update_dailyhour/1, delete_dailyhour/1, build_create_params/3]).
+-module  (ddrt_crl).
+-export  ([add_dailyhour/4, update_dailyhour/3, delete_dailyhour/1]).
 -include ("include/ddrt.hrl").
 -include ("include/crl_script.hrl").
-
--record (dailyhours, {task_execute_id, date, spend_time, activity, created, created_user_id, created_user_name, process_model_id, task_id, task_name, common_process_id, phase, task_type}).
-
-
-add_dailyhour(DailyHours) ->
-	%%Pool = execute_sync:get_pool(),
-	ddrt_mssql_mgr:execute_sync(?INSERT_DAILYHOUR, [
-		{sql_datetime, DailyHours#dailyhours.date},
-		{sql_integer, DailyHours#dailyhours.spend_time},
-		{sql_nvarchar, DailyHours#dailyhours.activity},
-		{sql_integer, DailyHours#dailyhours.created_user_id},
-		{sql_varchar, DailyHours#dailyhours.created_user_name},
-		{sql_integer, DailyHours#dailyhours.process_model_id},%2
-		{sql_integer, DailyHours#dailyhours.task_id},% 105
-		{sql_varchar, DailyHours#dailyhours.task_name}, %Developers Coding
-		{sql_integer, DailyHours#dailyhours.common_process_id},%
-		{sql_integer, DailyHours#dailyhours.phase}, %%2
-		{sql_integer, DailyHours#dailyhours.task_type}
-		]).
+-define  (PHASE_MAP(Activity), proplists:get_value(Activity, 
+				[{"Requirements", 22},
+				 {"Design", 23},
+				 {"Development", 24},
+				 {"Testing", 25},
+				 {"Deployment", 26},
+				 {"UAT Phase", 27}, 
+				 {"Support", 28},
+				 {"Documentation", 23}, 
+				 {"Management", 28}, 
+				 {"Study & Tranning", 24}, 
+				 {"Research", 24},
+				 {"Meeting", 22},
+				 {"Cooperation", 28}], -1)).
 
 
-update_dailyhour(DailyHours) ->
-	ddrt_mssql_mgr:execute_sync(?UPDATE_DAILYHOUR, [
-		{sql_datetime, DailyHours#dailyhours.date},
-		{sql_integer, DailyHours#dailyhours.spend_time},
-		{sql_nvarchar, DailyHours#dailyhours.activity},
-		{sql_integer, DailyHours#dailyhours.created_user_id},
-		{sql_varchar, DailyHours#dailyhours.created_user_name},
-		{sql_integer, DailyHours#dailyhours.phase}
-		]).
-
+update_dailyhour(TimeSpent, Content, WorklogId) ->
+	ddrt_mssql_mgr:execute_sync(?UPDATE_DAILYHOUR(ddrt_utils:binary_to_string(WorklogId)), [
+		{{sql_varchar, 23},[list_to_binary(ddrt_utils:get_mssql_day_string())]},
+		{{sql_decimal,15,2},[ddrt_utils:to_float(TimeSpent)]},
+		{{sql_wvarchar,200},  [ddrt_utils:to_sql_wvarchar(ddrt_utils:get_crl_comment(Content, WorklogId))]}]).
+	
 delete_dailyhour(WorklogId) ->
-	ddrt_mssql_mgr:execute_sync(?DELETE_DAILYHOUR, [{sql_varchar, WorklogId}]).
+	ddrt_mssql_mgr:execute_sync(?DELETE_DAILYHOUR(ddrt_utils:binary_to_string(WorklogId)), []).
 
 
 %%fill_dailyhours() ->
 
-build_create_params(CreateReports, UserId, UserName) ->
-	 %% ([TaskExecuteId],[Date],[SpendTime],[Activity],[Created],[CreatedUserId],[CreatedUserName],
-            %%[ProcessModelId],[TaskId],[TaskName],[CommonProcessId],[Phase],[TaskType]
-        %%ddrt_crl:add_dailyhour(ddrt_utils:get_str_today(), TimeSpent, ddrt_utils:get_crl_comment(Content,WorklogId),user,  ),
-    Date = ddrt_utils:get_str_today(),
+add_dailyhour(DailyHour, LoginId, UserName, Req) ->
+    NewUserName = re:replace(UserName, "\\.", " ", [global, {return, list}]),
+	TimeSpent = ddrt_utils:to_float(ddrt_utils:get_value("timeSpent", DailyHour, "8")),
+	WorklogId = proplists:get_value("id", DailyHour),
+	Content = proplists:get_value("comment", DailyHour, ""),
+	Activity = ddrt_utils:get_crl_comment(Content, WorklogId),
+	
+    Params = [{{sql_varchar, 23},[list_to_binary(ddrt_utils:get_mssql_day_string())]},
+			  {{sql_decimal,15,2},[TimeSpent]},
+              {{sql_wvarchar,200},  [ddrt_utils:to_sql_wvarchar(Activity)]},
+              {{sql_char,20},[ddrt_utils:string_to_binary(LoginId)]},
+              {{sql_wvarchar,50}, [ddrt_utils:to_sql_wvarchar(NewUserName)]}],
 
-    [begin 
-    	TimeSpent = proplists:get_value("timeSpent", R, "8"),
-    	WorklogId = proplists:get_value("id", R),
-    	Content = proplists:get_value("comment", R, ""),
-    	Activity = ddrt_utils:get_crl_comment(Content, WorklogId),
-        Params = [{sql_datetime, Date},
-		{sql_numeric, TimeSpent},
-		{sql_nvarchar, Activity},
-		{sql_integer, UserId},
-		{sql_varchar, UserName},
-		{sql_integer, 2},%2
-		{sql_integer, 105},% 105
-		{sql_varchar, "Developers Coding"}, %Developers Coding
-		{sql_integer, 1009292},%
-		{sql_integer, 24}, %%2
-		{sql_integer, 31}],
-		ddrt_mssql_mgr:execute_sync(?INSERT_DAILYHOUR, Params)
-    end || {obj, R} <- CreateReports].
+    case get_params(ddrt_utils:get_value("key", DailyHour), LoginId ,Req) of
+              	not_synchronized -> ok; %%to do remain
+              	OtherParams ->
+              		ddrt_mssql_mgr:execute_sync(?INSERT_DAILYHOUR, Params ++ OtherParams)
+    end.
 
-% private int setDailyHoursByCommonProcId(int commonProcId) {
-% 		dailyHourEntity.setTaskName("Developers Coding");
-% 		dailyHourEntity.setCommonProcessId(commonProcId);
-% 		dailyHourEntity.setProcessModelId(5733);
-% 		dailyHourEntity.setTaskId(105);
-% 		dailyHourEntity.setTaskType(31);
 
-% 		return commonProcId;
-% 	}
 
-% 	private int setDailyHoursByCrlNoAsCommonProcId(int crlNo) {
-% 		dailyHourEntity.setTaskName("Key User");
-% 		dailyHourEntity.setCommonProcessId(crlNo);
-% 		dailyHourEntity.setProcessModelId(2);
-% 		dailyHourEntity.setTaskId(0);
-% 		dailyHourEntity.setTaskType(-1);
-% 		dailyHourEntity.setPhase(-1);
 
-% 		return crlNo;
-% 	}
+get_params(IssueKey, LoginId ,Req) ->
+	
+	{_IssueKey, ActivityBin, Fields} = get_parent_issue(IssueKey, Req),
+	CrlNo = case proplists:get_value("customfield_11205", Fields) of
+		[Val] when is_binary(Val) -> list_to_integer(binary_to_list(Val));
+		_  -> 0
+	end,
+
+	Activity = case ActivityBin of
+		undefined -> undefined;
+		ActivityBin -> binary_to_list(ActivityBin)
+	end,
+
+	Phase = ?PHASE_MAP(Activity),
+	case log_decide(CrlNo) of
+	 	{internal, CommonProcessId} ->
+	 		get_params_common_procid(CommonProcessId, Phase);
+	 	{process_id, CrlNo} -> 
+	 		get_params_by_crlno_as_common_procid(CrlNo);
+	 	error ->
+	 		FixVersion = proplists:get_value("fixVersions", Fields, []),
+	 		FixVersionName = proplists:get_value("name", FixVersion),
+	 		DefaultCrlNo = get_common_crlno(FixVersionName, LoginId, Activity),
+	 		case log_decide(DefaultCrlNo) of
+	 			{internal, CommonProcessId2}  ->
+	 				get_params_common_procid(CommonProcessId2, Phase);
+	 			{process_id, DefaultCrlNo} -> 
+			 		get_params_by_crlno_as_common_procid(DefaultCrlNo);
+			 	error -> not_synchronized
+			 		%throw({termination, 400, [], "CRL# or CommonProcessId is not found"})
+
+	 		end
+	end.
+
+
+get_parent_issue(Key, Req) ->
+	get_parent_issue(Key, Req, undefined).
+
+get_parent_issue(Key, Req, Activity) ->
+	Data =  [{"jql", list_to_binary("key='" ++ Key ++ "'")},
+	%%% CRLNO:customfield_11205,   Activity:customfield_10401
+	 {"fields",[<<"parent">>, <<"issuetype">>, <<"customfield_11205">>, <<"customfield_10401">>, <<"fixVersions">>]}],
+	{200, _, Content} = ddrt_jira:search(Data, Req),
+	{ok, {obj, ParentInfo}, _} = rfc4627:decode(Content),
+	[{obj, Issue}] = proplists:get_value("issues", ParentInfo),
+	{obj, Fields} = proplists:get_value("fields", Issue),
+	{obj, TypeObj} = proplists:get_value("issuetype", Fields, []),
+	NewActivity = case Activity of
+			undefined -> 
+				case proplists:get_value("customfield_10401", Fields) of
+				 	undefined  -> undefined;
+				 	{obj, ActivityList} -> proplists:get_value("value", ActivityList);
+				 	_ -> undefined
+				end; 
+			Any -> Any
+		end,
+	case proplists:get_value("subtask", TypeObj, false) of
+		false -> {Key, NewActivity, Fields};
+		true  ->   
+			{obj, ParentObj} = proplists:get_value("parent", Fields),
+			ParentKey = ddrt_utils:get_value("key", ParentObj),
+			get_parent_issue(ParentKey, Req, NewActivity)
+	end.
+
+
+get_params_common_procid(CommonProcessId, Phase) ->
+	[{sql_integer,[5733]},
+	{sql_integer,[105]},
+	{{sql_varchar,50},[ <<"Developers Coding">>]},
+	{sql_integer,[CommonProcessId]},
+    {sql_integer,[ Phase ]},
+    {sql_integer,[31]}].
+
+get_params_by_crlno_as_common_procid(CrlNo) ->
+	[{sql_integer,[2]},
+	{sql_integer,[0]},
+	{{sql_varchar,50},[<<"Key User">>]},
+	{sql_integer,[CrlNo]},
+    {sql_integer,[-1]},
+    {sql_integer,[-1]}].
+
+
+get_common_crlno(undefined, Author, Activity) ->
+	get_common_crlno(Author, Activity);
+get_common_crlno(FixVersion, Author, Activity) ->
+	%{selected, _, [CrlNO]} = ,
+	case ddrt_mssql_mgr:execute(?GET_COMMON_PROCESSID, [{{sql_wvarchar, 200}, [ddrt_utils:to_sql_wvarchar(FixVersion)]}]) of
+		{selected, _, []} -> add_commonprocess_map(FixVersion, Author, Activity);
+		{selected, _, [{CrlNo}]} -> CrlNo
+	end.
+
+get_common_crlno(Author, undefined) -> 
+	get_common_crlno(Author, "internal"); %not_synchronized;
+get_common_crlno(Author, Activity) ->
+	case ddrt_mssql_mgr:execute(?GET_TEAM_BY_MEMBER(Author), []) of
+		{selected, _, []}-> 0; %"N/A";
+		{selected, _, [{GroupName}|_]} -> get_activity_crlno_mapping_by_group(GroupName, string:to_upper(Activity))
+	end.
+
+%% add mapping
+add_commonprocess_map(FixVersion, Author, Activity) ->
+	case ddrt_mssql_mgr:execute(?ADD_COMMONPROCESS_MAP, [{{sql_char,20},[Author]}, 
+		{{sql_wvarchar, 200}, [ddrt_utils:to_sql_wvarchar("Project For Jira:" ++ FixVersion)]},
+		{{sql_wvarchar, 200}, [ddrt_utils:to_sql_wvarchar(FixVersion)]}])  of
+		{updated, 2} -> get_common_crlno(FixVersion, Author, Activity);
+		_ -> throw({termination, 500, [], "get crlNo error"})
+	end.
+
+
+
+get_activity_crlno_mapping_by_group(GroupName, []) ->
+	get_internal_key_crlno(GroupName);
+get_activity_crlno_mapping_by_group(GroupName, "STUDY & TRAINING")->
+	get_activity_crlno_mapping_by_group(GroupName, "StudyAndTraining");
+get_activity_crlno_mapping_by_group(GroupName, Activity) ->
+	case ddrt_mssql_mgr:execute(?GET_CRLNO_BY_GROUP, [{{sql_varchar, 40}, [GroupName]}, {{sql_varchar, 40}, [Activity]}]) of
+		{selected, _, []} -> get_internal_key_crlno(GroupName);
+		{selected, _, [{CrlNo}|_]} -> list_to_integer(CrlNo)
+	end.
+
+get_internal_key_crlno(GroupName) ->
+	case ddrt_mssql_mgr:execute(?GET_CRLNO_BY_GROUP, [{{sql_varchar, 40}, [GroupName]}, {{sql_varchar, 40}, ["internal"]}]) of
+		{selected, _, []} -> not_synchronized; %throw({termination, 400, [], "The activityMap does not contain internal key"});
+		{selected, _, [{CrlNo}|_]} -> list_to_integer(CrlNo)
+	end.
+
+
+%log_decide
+log_decide(CrlNo) when CrlNo < 1 -> error;
+log_decide(CrlNo) ->
+	case ddrt_mssql_mgr:execute(?GET_PROCESSID_BY_INTERNAL, [{sql_integer, [CrlNo]}])  of
+		{selected, _, [{CommonProcessId}|_]} -> {internal, CommonProcessId};
+		{selected, _, []} -> 
+			case ddrt_mssql_mgr:execute(?EXIST_COMMONPROCESS, [{sql_integer, [CrlNo]}])  of
+				{selected, _, [{_Any}]} -> {process_id, CrlNo};
+				_ -> error
+			end;
+		_ -> error
+	end.
+

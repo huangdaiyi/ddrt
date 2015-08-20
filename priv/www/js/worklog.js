@@ -109,6 +109,7 @@ $(document).ready(function(){
         }else{
             if (reportObj.data().action === "delete") {
                 reportObj.append(reportObj.data().children);
+                reportObj.data().action = "update";
                 reportObj.show();
             } 
         }
@@ -177,7 +178,11 @@ $(document).ready(function(){
         });
     });
 
-    $("#add-other").on("click", function(){
+    $("#add-other input[type=text]").on("keydown", function(e){
+        e.which === 13 && $(this).next().trigger("click");
+    });
+
+    $("#add-other span.btn").on("click", function(){
         var $inputTxt = $(this).prev();
         var keyword = $inputTxt.val();
         if ($.trim(keyword) === "") {
@@ -202,7 +207,7 @@ $(document).ready(function(){
                 // digits:true,
                 timeSpent:true,
                 maxlength:4,
-                range:[1,24],
+                range:[0.5,24],
                 required: true
             }
         },
@@ -342,7 +347,10 @@ var submitReport = function(form){
         item = buildItem(tr$, action);
         reportObj[action].push(item);
     });
-     reportObj.userId = $("#curUser").data().userId;
+     var userInfo = $("#curUser");
+     reportObj.userId = userInfo.data().userId;
+     reportObj.username = userInfo.data().displayName;
+     reportObj.loginId = userInfo.data().name;
     //var reportObj = {"reports": reports, "userId":$("#curUser").data().userId};
     $.post("api/v1/jira/worklog",  JSON.stringify(reportObj)).done(function(data){
         showLoading("submit success", true);
@@ -356,22 +364,22 @@ var submitReport = function(form){
 };
 
 function resetForm(data, form){
-    form.reset();
+    //form.reset();
+     var responseObj = eval(data);
     $("#reports table tbody tr").each(function(){
         var $tr = $(this);
         if ($tr.is(":hidden")) {
             $tr.remove();
         } else{
             if($tr.data().action === "create"){
-                $tr.data("worklogId",  findLodId(data, $tr.data().key));
+                $tr.data("worklogId",  findLodId(responseObj, $tr.data().key));
             }
             $tr.data().action = "update";
         }
     });
 };
 
-function findLodId(data, issue){
-    var responseObj = eval(data);
+function findLodId(responseObj, issue){
     for (var i = 0; i < responseObj.length; i++) {
         if (responseObj[i].issue === issue) {
             return responseObj[i].id;
