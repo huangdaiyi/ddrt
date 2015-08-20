@@ -88,14 +88,15 @@ initialize_mssql(Workers, ConnectStr, Size) ->
 
 parse_config() ->
 	{ok, Config} = neg_hydra:get_env(mssql_pool),
-	ConnectStr = lists:flatten(io_lib:format("DRIVER={SQL Server};SERVER=~s;DATABASE=~s;UID=~s;PWD=~s",
-						[proplists:get_value(host, Config),
-						 proplists:get_value(database, Config),
-						 proplists:get_value(user, Config),
-						 proplists:get_value(password, Config)
-						])),
 
-	{proplists:get_value(size, Config), ConnectStr}.
+	% ConnectStr = lists:flatten(io_lib:format("DRIVER={SQL Server};SERVER=~s;DATABASE=~s;UID=~s;PWD=~s",
+	% 					[proplists:get_value(host, Config),
+	% 					 proplists:get_value(database, Config),
+	% 					 proplists:get_value(user, Config),
+	% 					 proplists:get_value(password, Config)
+	% 					])),
+
+	{proplists:get_value(size, Config), proplists:get_value(connection, Config)}.
 
 generate_name(Num) ->
 	list_to_atom(string:join(["ddrt_mssql", integer_to_list(Num)], "_")).

@@ -1,150 +1,186 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<meta http-equiv="X-UA-Compatible" content="IE=10">
-		<title>Daily Report Tool</title>
-		<!-- Bootstrap -->
-    	<link href="css/bootstrap.min.css" rel="stylesheet" type="text/css">
-		<!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-		<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-		<!--[if lt IE 10]>
-		<script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
-		<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-		<![endif]-->
-    	<script src="js/jquery.js"></script>
-		<script src="js/bootstrap.min.js"></script>
-		<!-- Validate Plugin -->
-		<script src="js/jquery.validate.min.js" type="text/javascript"></script>
-		<script src="js/jquery.form.js" type="text/javascript"></script>
-        <script src="js/common.js" type="text/javascript"></script>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="X-UA-Compatible" content="IE=10">
+        <title>Daily Report Manager</title>
+        <!-- Bootstrap -->
+        <link href="css/bootstrap.min.css" rel="stylesheet" type="text/css">
+        <link href="css/pagination.min.css" rel="stylesheet" type="text/css">
+        <link href="css/worklog.min.css" rel="stylesheet" type="text/css">
+        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 10]>
+        <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+        <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+        <![endif]-->
+        <script src="js/jquery.js"></script>
+        <script src="js/bootstrap.min.js"></script>
+        <!-- Validate Plugin -->
+        <script src="js/jquery.validate.min.js" type="text/javascript"></script>
+        <script src="js/jquery.pagination.min.js" type="text/javascript"></script>
+        <script src="js/common.min.js" type="text/javascript"></script>
+        <script src="js/textarea.autoresize.min.js" type="text/javascript"></script>
+    </head>
+    <body>
+        <div class="container panel panel-primary margin-top-10">
+            <div class="row panel-heading">
+                <div class="col-sm-4 text-left">
+                    <h4 class="panel-title"> DDRT Worklog</h4>
+                </div>
+                <div class="col-sm-8 text-right">
+                    <p id="reportUser" class="panel-title">
+                        <img id="useravatar" src="http://jira/secure/useravatar?size=small&avatarId=10122" />
+                        <a id="curUser" href="javascript:void(0)" class="font-bold">hh49</a>&nbsp;&nbsp;
+                        <a id="loginOut" href="javascript:void(0)">Logout</a>
+                    </p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-12 margin-top-15">
+                    <div id="issuePanel" class="panel panel-info">
+                        <div class="panel-heading">
+                            <h3 class="panel-title"> <b>Issues</b>
+                                &nbsp;&nbsp;
+                                <small>choose project and status,can faster find your issues</small>
+                                <a data-container="body" data-toggle="popover" data-placement="left" id="collapse" href="javascript:void(0)" class="glyphicon glyphicon-collapse-up pull-right" aria-hidden="true"></a>
+                            </h3>
 
-    	<script type="text/javascript">
-    		$(document).ready(function(){
-               
-                
-               
-                user = getCookie(cookie_key) || 0;
-                email_sel$ = $("#email").append('<option value="" disabled="">Select your email</option>'); 
-
-                $.getJSON('api/v1/users',function(data) {
-                    $.each(data, function(k,v) {
-                        if (v.type === "R")
-                            email_sel$.append('<option ' + (v.id == user?'selected = "selected"':'') 
-                                + ' value="'+ v.id +' ">'+ v.email + '</option>');
-                    });
-                    email_sel$.prop("disabled", false);
-                })
-
-    			$('#success').hide();
-    			$('#form').validate({
-        			rules: {
-            			email: {
-                            // minlength: 3,
-                            number:true,
-                            digits:true,
-                            required: true
-                        },
-            			content: {
-                			minlength: 3,
-                			required: true
-            			}
-        			},
-        			errorElement: 'span',
-        			errorClass: 'help-block',
-        			highlight: function(element) {
-            			$(element).closest('.form-group').addClass('has-error');
-        			},
-        			unhighlight: function(element) {
-            			$(element).closest('.form-group').removeClass('has-error');
-        			}
-    			});
-
-
-    			$('#form').submit(function(){
-
-                    var email = $.trim($('#email').val());
-                    setCookie(cookie_key,email,30);
-                    var content = $.trim($('#content').val());
-                    if (email === '' || content === '') {
-                        var options = {
-                            keyboard: false
-                        }
-                        $('#errorModal').modal(options);
-                        return false;
-                    }
-
-    				var options = {
-                        type: 'put',
-    					target: '#success-content',
-    					success: showResponse,
-    					//resetForm: true,
-                        //clearForm: true,
-    					timeout: 3000
-    				};
-
-    				$(this).ajaxSubmit(options);
-
-    				return false;
-    			});
-
-    		});
-
-    		function showResponse(responseText, statusText){
-                //setCurrent();
-                clearContent();
-    			$('#success').show();
-                $("#success").fadeTo(2000, 500).slideUp(1000, function(){
-                    $("#success").hide();
-                });
-    		};
-
-        var cookie_key = "__current_user";
-
-        var clearContent = function(){
-            $("#content").val("");
-        };
-    	</script>
-	</head>
-	<body>
-		<div class="alert alert-success" role="alert" style="width:60%; margin:10px auto;" id="success">
-            <p class="text-center" id="success-content"></p>
-		</div>
-        <div class="modal fade bs-example-modal-sm" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-sm">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                        <h4 class="modal-title" id="myModalLabel">Error Info</h4>
-                    </div>
-                    <div class="modal-body">
-                        <strong>Error: </strong>Email and Report content can not be empty!
+                        </div>
+                        <div id="issues-wrap" class="panel-body" style="display:none;">
+                            <div class="row well">
+                                <div class="col-sm-4">
+                                    <div class="input-group">
+                                        <span class="input-group-addon success font-bold">Projects</span>
+                                        <select id="selProject" class="form-control">
+                                            <option value="-1">All</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-sm-4">
+                                    <div class="input-group">
+                                        <span class="input-group-addon info font-bold">Status</span>
+                                        <select id="selStatus" class="form-control">
+                                            <option value="0">Open</option>
+                                            <option value="1" selected="selected">In Progress</option>
+                                            <option value="2">Reopened</option>
+                                            <option value="3">Resolved</option>
+                                            <!-- <option value="4" disabled="disabled">Closed</option> -->
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-sm-4">
+                                    <div id="add-other" class="input-group">
+                                        <span class="input-group-addon danger font-bold">others</span>
+                                        <input type="text" class="form-control search"  placeholder="Enter a report's key ..." />
+                                        <span  href="#" class="input-group-addon btn btn-default" >search</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-sm-12 table-responsive">
+                                <!-- <hr class="font-bold" /> -->
+                                <table  class="table table-hover table-condensed">
+                                    <thead>
+                                        <tr>
+                                            <th width="5%">#</th>
+                                            <th width="10%">T</th>
+                                            <th width="15%">Key</th>
+                                            <th>Summary</th>
+                                            <th width="8%">Operation</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="issues-tb">
+                                    </tbody>
+                                   
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <div class="panel-footer clearfix" style="display:none;">
+                            <div id="pagination" class="margin-clear pull-right">
+                                
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
+            <div class="row">
+                <div class="col-sm-12">
+                    <form id="reportForm" method="post" action="api/v1/jira/worklog">
+                        <fieldset id="reports" class="scheduler-border form-group" >
+                            <legend class="scheduler-border">
+                                <label class="control-label">Report Content
+                                  
+                                </label>
+                            </legend>
+                            <div class="table-responsive">
+                                <table  class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th width="25%">Issue</th>
+                                            <th>Report Summary</th>
+                                            <th width="12%">Time Spent</th>
+                                            <th width="5%">Operation</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="report-tb">
+                                    </tbody>
+                                </table>
+                                
+                            </div>
+                        </fieldset>
+                        <div class="col-sm-2 col-sm-offset-5 form-group">
+                                <button  id="submitReport" data-loading-text="Loading..." type="submit" class="btn btn-primary btn-lg btn-block">Submit</button>
+                        </div>
+                    </form>
+                </div>
+                
+            </div>
+        </div> 
+        <div id = "loadingModal" class="modal" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel">
+            <div class="loading txt-center">
+                <img src="image/load1.gif" alt="loding issue, please waiting..." /> <span>loding issue, please waiting...</span> 
+            </div>
         </div>
-		<div class="panel panel-primary" style="width:60%; margin:10px auto;">
-			<div class="panel-heading text-center">
-    			<h1 class="panel-title">Welcome to use DDRT</h1>
-  			</div>
-			<div class="panel-body">
-				<form role="form" id="form" method="put" action="api/v1/report">
-					<div class="form-group">
-						<label class="control-label" for="email">Email address</label>
-						<!-- <input type="text" class="form-control" placeholder="Enter your email" name="email" id="email"/> -->
-                        <select class="form-control" name="userid", id="email">
-                        </select>
-					</div>
-					<div class="form-group">
-						<label class="control-label" for="content">Report Content</label>
-						<textarea class="form-control" rows="6" placeholder="Enter your today's report" name="content" id="content"></textarea>
-					</div>
-					<div class="form-group">
-						<button type="submit" class="btn btn-primary btn-lg btn-block">Submit</button>
-					</div>
-				</form>
-			</div>
-		</div>
-	</body>
+
+        <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+          <div id="loginDialog" class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" aria-label="Close"><span aria-hidden="true">::</span></button>
+                <h4 class="modal-title" id="myModalLabel">Please sign in</h4>
+              </div>
+              <div class="modal-body">
+                <form id="loginForm" class="form-signin" role="form" action="api/v1/jira/login" method="post">
+                    <label for="username" class="sr-only">Username</label>
+                    <input type="text" name="username" id="username" class="form-control" placeholder="Username" required autofocus>
+                    <label for="inputPassword" class="sr-only">Password</label>
+                    <input type="password" name="password" id="password" class="form-control" placeholder="Password" required>
+                    <input type="hidden" name="info" value="true" />
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox" value="remember-me" /> Remember me
+                      </label>
+                    </div>
+                    <input id="loginBtn" data-loading-text="Login please waiting..." autocomplete="off" class="btn btn-lg btn-primary btn-block" type="submit" value="Sign in" />
+                    <p id="loginTip" class="txt-center"></p>
+                </form> 
+
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="footer" class="txt-center">
+            <span>©copyright 2015-2020</span> |
+            <a href="#">Contact Us</a> |
+            <a href="mailto:Hardy.D.Huang@newegg.com?subject=Feedback for DDRT&body=Feedback to us">
+            Send me an email</a>
+        </div>
+
+        <script type="text/javascript" src="js/worklog.min.js"></script>
+        
+    </body>
 </html>
