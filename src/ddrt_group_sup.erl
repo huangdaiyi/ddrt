@@ -23,5 +23,9 @@ start_child(Group) ->
     supervisor:start_child(?MODULE, [Group]).
 
 
-
-
+-ifdef (TEST).
+-include_lib("eunit/include/eunit.hrl").
+init_test() ->
+    Strategy = {{simple_one_for_one, 10, 60}, [{ddrt_group, {ddrt_group, start_link, []}, temporary, 2000, worker, [ddrt_group]}]},
+    ?assertEqual({ok, Strategy}, init([])).
+-endif.
