@@ -18,10 +18,7 @@ edoc: all
 	@$(REBAR) doc
 
 test: 
-	@rm -rf .eunit 
-	@mkdir -p .eunit 
-	@cp -rf priv .eunit/
-	@$(REBAR) eunit 
+	@$(REBAR) eunit skip_deps=true
 
 clean:
 	@$(REBAR) clean

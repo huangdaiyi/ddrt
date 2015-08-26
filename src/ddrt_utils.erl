@@ -6,7 +6,7 @@
          string_to_binary/1, binary_to_string/1,
          time_to_utc_string/1, get_value/2, get_value/3,
          get_orignal_value/2, get_orignal_value/3, get_jira_url/0, get_crl_comment/2, 
-         to_float/1, to_sql_wvarchar/1, get_mssql_day_string/0]).
+         to_float/1, to_sql_wvarchar/1, get_mssql_day_string/0, send_http/4, send_http/5]).
 -include ("include/ddrt.hrl").
 
 build_report_body(Reports) ->
@@ -17,25 +17,13 @@ build_report_body(Reports) ->
                      date = {datetime, Date}, time_spent = TimeSpent , issue = Issue }
             <- Reports].
 
-datetime_to_string(DateTime) ->
-    {{Y, M1, D}, {H, M2, S}} = DateTime,
-    string:join([integer_to_list(Y), integer_to_list(M1),
-                 integer_to_list(D)],
-                "-")
-      ++
-      " " ++
-        string:join([integer_to_list(H), integer_to_list(M2),
-                     integer_to_list(S)],
-                    ":").
 
 datetime_format(Date) when is_list(Date) ->
     list_to_binary(Date);
 datetime_format(Date) when is_binary(Date) -> Date;
 datetime_format(Date) ->
     {{Year, Month, Day}, _} = Date,
-    list_to_binary(string:join([integer_to_list(Year),
-                                integer_to_list(Month), integer_to_list(Day)],
-                               "-")).
+    list_to_binary(string:join([integer_to_list(Year),  integer_to_list(Month), integer_to_list(Day)],"-")).
 
 days_to_date(DayNums) ->
     calendar:gregorian_days_to_date(DayNums).
@@ -91,18 +79,16 @@ binary_to_string(B) when is_binary(B) ->
     binary_to_list(B);
 binary_to_string(B) when is_list(B) -> B.
 
+
 time_to_utc_string({MegaSecs, Secs, MicroSecs}) ->
     {{Year, Month, Day}, {Hour, Minute, Second}} =
-        calendar:now_to_universal_time({MegaSecs, Secs,
-                                        MicroSecs}),
-    lists:flatten(io_lib:format("~4..0w-~2..0w-~2..0wT~2..0w:~2..0w:~2..0w.~6."
-                                ".0wZ",
-                                [Year, Month, Day, Hour, Minute, Second,
-                                 MicroSecs])).
+    calendar:now_to_universal_time({MegaSecs, Secs, MicroSecs}),
+    lists:flatten( io_lib:format("~4..0w-~2..0w-~2..0wT~2..0w:~2..0w:~2..0w.~6..0wZ", [Year, Month, Day, Hour, Minute, Second, MicroSecs])).
 
-% get_mssql_date_string() ->
-%  {{Y,Mo,D},{H,Mi, S}} = erlang:localtime(), 
-%  io_lib:format("~4.10.0B-~2.10.0B-~2.10.0B ~2.10.0B:~2.10.0B:~2.10.0B", [Y, Mo, D, H, Mi, S]).
+
+datetime_to_string(DateTime) ->
+ {{Y,Mo,D},{H,Mi, S}} = DateTime, 
+ lists:flatten(io_lib:format("~4.10.0B-~2.10.0B-~2.10.0B ~2.10.0B:~2.10.0B:~2.10.0B", [Y, Mo, D, H, Mi, S])).
 
 get_mssql_day_string() ->
  {{Y,Mo,D},_} = erlang:localtime(), 
@@ -148,11 +134,12 @@ get_jira_url()->
     {ok, JiraUrl} = neg_hydra:get_env(jira_address, "http://jira"),
     JiraUrl.
 
-get_crl_comment(Comment, WorklogId) when Comment =:= [] ->
-    << <<"[AUTO#">>/binary, WorklogId/binary, <<"]work in JIRA">>/binary>>;
 get_crl_comment(Comment, WorklogId) ->
-    << <<"[AUTO#">>/binary, WorklogId/binary, Comment/binary>>.
+    << <<"[AUTO#">>/binary, WorklogId/binary, <<"]">>/binary, Comment/binary>>.
 
+
+to_float(Int) when is_integer(Int) ->
+    float(Int);
 to_float(Bin) when is_binary(Bin) ->
     to_float(binary_to_list(Bin));
 to_float(Str) ->
@@ -161,7 +148,173 @@ to_float(Str) ->
         {F,_Rest} -> F
     end.
 
-% to_sql_wvarchar(Content) when is_list(Content) ->
-%     to_sql_wvarchar(uncode:charactor_to_binary(Content, latin1, utf8));
+
+
+send_http(Method, Url, HttpHeaders, Body) ->
+    send_http(Method, Url, HttpHeaders, Body, 10000).
+
+send_http(Method, Url, HttpHeaders, Body, Timeout) ->
+    Content_type = proplists:get_value("content-type", HttpHeaders, "text/plain"),
+    SafeHttpHeaders = proplists:delete("content-type", HttpHeaders),
+    Request = case Method of
+        Req when Req =:= post; Req =:= put  -> {Url, SafeHttpHeaders, Content_type, Body};
+        _ -> {Url, SafeHttpHeaders}
+    end,
+    %%httpc:set_options([{cookies, verify }]),
+    Result = httpc:request(Method, Request, [{ssl,[{verify,0}]}, {timeout, Timeout}], []),
+    case Result of
+        {ok, {{_HttpVersion, StatusCode, _Description}, Headers, Content}} -> {ok, StatusCode, Headers, Content};
+        {error, _Message} -> throw({error, 500, list_to_binary(io_lib:format("connect ~p failed.", [Url]))})
+    end.
+
+
 to_sql_wvarchar(Content) ->
     unicode:characters_to_binary(Content, utf8, {utf16, little}).
+
+
+%%% ===================================================================
+%%% Tests  
+%%% ===================================================================
+
+-ifdef(TEST).
+-include_lib("eunit/include/eunit.hrl").
+
+datetime_to_string_test() ->
+    DateTime = {{2015,8,21},{11, 5, 1}},
+    ?assertEqual("2015-08-21 11:05:01",  datetime_to_string(DateTime)).
+
+datetime_format_test() ->
+    ?assertEqual(<<"2015-8-21 14:28:31">>, datetime_format("2015-8-21 14:28:31")),
+    ?assertEqual(<<"2015-8-21 14:28:31">>, datetime_format(<<"2015-8-21 14:28:31">>)),
+    ?assertEqual(<<"2015-8-21">>, datetime_format({{2015,8,21}, any})).
+
+format_data_line_test() ->
+    ?assertEqual("<br/>", format_data_line("\n")),
+    ?assertEqual("<br/>", format_data_line("\r\n")),
+    ?assertEqual("<br/>1234", format_data_line("\r\n1234")),
+    ?assertEqual("<br/>1234", format_data_line(<<"\r\n1234">>)),
+    ?assertEqual("abc<br/>1234", format_data_line(<<"abc\n1234">>)).
+
+get_today_days_test() ->
+    ?assert(is_number(get_today_days())),
+    ?assert(get_today_days() > 736195). %2015-8-20
+
+
+get_days_test() ->
+    ?assertEqual(736196, get_days({2015,8,21})),
+    ?assertEqual(736196, get_days(2015,8,21)),
+    ?assertEqual(736196, get_days({{2015,8,21},{14,28,31}})),
+    ?assertEqual(736196, get_days({datetime, {{2015,8,21},{14,28,31}}})).
+
+days_to_date_test() ->
+    ?assertEqual({2015, 8, 21}, days_to_date(736196)).
+
+days_to_str_date_test() ->
+    ?assertEqual("2015-8-21", days_to_str_date(736196)).
+
+get_str_today_test() ->
+    ?assert(is_list(get_str_today())).
+
+string_to_binary_test() ->
+    ?assertEqual(<<>>, string_to_binary([])),
+    ?assertEqual(<<"hardy_test">>, string_to_binary("hardy_test")),
+    ?assertEqual(<<"hardy_test">>, string_to_binary(<<"hardy_test">>)).
+
+binary_to_string_test() ->
+    ?assertEqual([], binary_to_string(<<>>)),
+    ?assertEqual("hardy_test", binary_to_string(<<"hardy_test">>)),
+    ?assertEqual("hardy_test", binary_to_string("hardy_test")).
+
+time_to_utc_string_test() ->
+    ?assertEqual("1970-01-01T00:00:00.000000Z", time_to_utc_string({0,0,0})).
+
+
+get_value_test() ->
+    Lists = [{"a", 1}, {"b", 2}, {"c", <<"3">>}, {"d", "3"}],
+    ?assertEqual(1, get_value("a", Lists)),
+    ?assertEqual(2, get_value("b", Lists)),
+    ?assertEqual("3", get_value("c", Lists)),
+    ?assertEqual("3", get_value("d", Lists)),
+    ?assertThrow({termination, 400, [], <<>>}, get_value("e", Lists)),
+
+    ?assertEqual(1, get_value("a", Lists, 3)),
+    ?assertEqual(2, get_value("b", Lists, 3)),
+    ?assertEqual("3", get_value("c", Lists, 3)),
+    ?assertEqual("3", get_value("d", Lists, 3)),
+    ?assertEqual(3, get_value("e", Lists, 3)).
+   
+
+get_orignal_value_test() ->
+    Lists = [{"a", 1}, {"b", 2}, {"c", <<"3">>}, {"d", "3"}],
+    ?assertEqual(1, get_orignal_value("a", Lists)),
+    ?assertEqual(2, get_orignal_value("b", Lists)),
+    ?assertEqual(<<"3">>, get_orignal_value("c", Lists)),
+    ?assertEqual("3", get_orignal_value("d", Lists)),
+    ?assertThrow({termination, 400, [], <<>>}, get_orignal_value("e", Lists)),
+
+    ?assertEqual(1, get_orignal_value("a", Lists, 3)),
+    ?assertEqual(2, get_orignal_value("b", Lists, 3)),
+    ?assertEqual(<<"3">>, get_orignal_value("c", Lists, 3)),
+    ?assertEqual("3", get_orignal_value("d", Lists, 3)),
+    ?assertEqual(3, get_orignal_value("e", Lists, 3)).
+
+get_jira_url_test() ->
+   
+    ok = meck:new(neg_hydra, [non_strict]),
+    ok = meck:expect(neg_hydra, get_env, fun
+        (jira_address, _)  -> {ok, "http://jira"}
+    end),
+    ?assertEqual("http://jira", get_jira_url()),
+    true = meck:validate(neg_hydra),
+    ok = meck:unload(neg_hydra).
+
+get_crl_comment_test() ->
+    ?assertEqual(<<"[AUTO#123456]test comment">>, get_crl_comment(<<"test comment">>, <<"123456">>)).
+
+to_float_test() ->
+    ?assertEqual(2.0, to_float("2")),
+    ?assertEqual(2.0, to_float(2)),
+    ?assertEqual(2.0, to_float("2.0")),
+    ?assertEqual(2.0, to_float("2")),
+    ?assertEqual(2.0, to_float(<<"2">>)).
+
+to_sql_wvarchar_test() ->
+    ?assert(is_binary(to_sql_wvarchar(<<"a">>))),
+    ?assert(is_binary(to_sql_wvarchar("a"))),
+    ?assertEqual(<<97,0>>,  to_sql_wvarchar(<<"a">>)).
+
+
+get_mssql_day_string_test() ->
+    ?assert(is_list(get_mssql_day_string())).
+
+build_report_body_test() ->
+    ?assertEqual([], build_report_body([])),
+    TestReport = [#report_mode{worklog_id=1,email = "test@email", content = "test", date = {datetime, {{2015,8,21},{14,28,31}}},
+     time_spent = 8 , issue = "test" }],
+    ?assertMatch([{obj, _}], build_report_body(TestReport)).
+
+user_format_test() ->
+    ?assertEqual([], user_format([])),
+    TestUser = [#userentity{id = 1, domain_name = "test", email = "test@email", type = "Type", receive_type = "cc",
+        group_name = "GroupName",template = "Template"}],
+    ?assertMatch([{obj,_}], user_format(TestUser)).
+
+send_http_test() ->
+    ok = meck:new(httpc, [non_strict]), 
+    ok = meck:expect(httpc, request, fun
+        (error, _, _, _) -> {error, "error"};
+        (_, _, _, _)  -> {ok, {{"http/1.0",200, ""}, [], <<>>}}
+    end),
+
+    ?assertEqual({ok, 200, [], <<>>}, send_http(get, "http://test.com", [{"content-type", "application/json"}], <<>>)),
+    ?assertEqual({ok, 200, [], <<>>}, send_http(post, "http://test.com", [{"content-type", "application/json"}], <<>>)),
+    ?assertEqual({ok, 200, [], <<>>}, send_http(put, "http://test.com", [{"content-type", "application/json"}], <<>>)),
+    ?assertEqual({ok, 200, [], <<>>}, send_http(head, "http://test.com", [{"content-type", "application/json"}], <<>>)),
+    ?assertEqual({ok, 200, [], <<>>}, send_http(delete, "http://test.com", [{"content-type", "application/json"}], <<>>)),
+    ?assertThrow({error, 500, _}, send_http(error, "http://test.com", [{"content-type", "application/json"}], <<>>)),
+
+    true = meck:validate(httpc),
+    ok = meck:unload(httpc).
+
+
+-endif.

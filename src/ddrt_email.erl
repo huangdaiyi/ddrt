@@ -1,7 +1,7 @@
 -module(ddrt_email).
 -include ("include/ddrt.hrl").
 
--export([send_mail/1, send_remind/1, send_mail_test/2]).
+-export([send_mail/1, send_remind/1]).
 
 send_remind(#groups{id = Id, scheduling_name = Name}) ->
     Users = ddrt_db:get_not_report_emails(Id),
@@ -23,8 +23,7 @@ send_remind_2([#email_list{email = Email, user_name = User}| RestUsers],  SendTi
                             {send_time, list_to_binary(SendTime)}]},
     %{title, <<"Daily Report Remind">>},
     Body = ddrt_runder:run(T),
-    Subject = "(Info)Submit Daily Report Remind " ++
-                ddrt_utils:get_str_today(),
+    Subject = "(Info)Submit Daily Report Remind " ++ ddrt_utils:get_str_today(),
     Cc = "",
     Mail = #mail{to = binary_to_list(Email), cc = Cc,
                   subject = Subject, body = Body},
@@ -33,13 +32,13 @@ send_remind_2([#email_list{email = Email, user_name = User}| RestUsers],  SendTi
     spawn(ddrt_mail, send_mail, [Mail]),
     send_remind_2(RestUsers, SendTime).
 
-send_mail_test(ID, Name) ->
-    send_mail(#groups{id = ID, group_name = Name}).
+% send_mail_test(ID, Name) ->
+%     send_mail(#groups{id = ID, group_name = Name}).
 
 send_mail(#groups{id = ID, group_name = Name}) ->
     StrName = binary_to_list(Name),
     Now = calendar:local_time(),
-    DayNum = get_report_num(),
+    DayNum = get_report_num(), 
     Reports = ddrt_db:get_all_reports(Now, DayNum, ID),
     GroupUsers = ddrt_db:get_group_users(ID),
     To = string:join([binary_to_list(Email)
@@ -61,9 +60,7 @@ send_mail(#groups{id = ID, group_name = Name}) ->
                                              U, ReportDays)
                                 || U <- GroupUsers,
                                    U#group_user.report_type =:= <<"R">>]),
-    Subject = "(Report)" ++
-                StrName ++
-                  " Daily Report " ++ ddrt_utils:get_str_today(),
+    Subject = "(Report)" ++ StrName ++ " Daily Report " ++ ddrt_utils:get_str_today(),
     {ok, TemplateName} = neg_hydra:get_env(report_template),
     T = #template_opts{module = template_parser,
                        source = string:join(["template", TemplateName], "/"),
@@ -106,8 +103,6 @@ get_report_days(Day, Num, Acct) ->
 flatten_reports_by_day(Reports) ->
   lists:foldl(fun(#report_mode{date = Date} = R, Acct) ->
       dict:update(ddrt_utils:get_days(Date), 
-        %%<<"<a href='">>/bits, list_to_binary(get_jira_url())/bits, <<"/">>, (R#report_mode.issue)/bits,  << "'>" >>, (R#report_mode.issue)/bits, <<"</a> <br />">>/bits,
-        %fun(V) -> V#report_mode{content = << (list_to_binary(ddrt_utils:format_data_line(V#report_mode.content)))/bits, <<"<br />">>/bits, <<"<b>">>/bits, (R#report_mode.issue)/bits ,<<"</b> <br />">>/bits, (R#report_mode.content)/bits >>} end,
         fun(V) -> V#report_mode{content = << (list_to_binary(ddrt_utils:format_data_line(V#report_mode.content)))/bits, <<"<br />">>/bits, <<"<a class='issue' href='">>/bits, (list_to_binary(ddrt_utils:get_jira_url()))/bits, <<"/browse/">>/bits, (R#report_mode.issue)/bits,  << "'>" >>/bits, (R#report_mode.issue)/bits, <<"</a> <br />">>/bits, (list_to_binary(ddrt_utils:format_data_line(R#report_mode.content)))/bits >>} end,
         R#report_mode{content = << <<"<a class='issue' href='">>/bits, (list_to_binary(ddrt_utils:get_jira_url()))/bits, <<"/browse/">>/bits, (R#report_mode.issue)/bits,  << "'>" >>/bits, (R#report_mode.issue)/bits, <<"</a> <br />">>/bits, (list_to_binary(ddrt_utils:format_data_line(R#report_mode.content)))/bits >>}, Acct)
   end, dict:new(), Reports).
@@ -142,3 +137,154 @@ fill_reports(Reports, User, Days) ->
                        ddrt_utils:get_days(Date1) > ddrt_utils:get_days(Date2)
                end,
                NewReports).
+
+%%% ===================================================================
+%%% Tests  
+%%% ===================================================================
+
+-ifdef(TEST).
+-include_lib("eunit/include/eunit.hrl").
+send_mail_test() ->
+  Group = #groups{id = 1, group_name = <<"test group name">>},
+  ok = meck:new(ddrt_db, [non_strict]),
+  ok = meck:expect(ddrt_db, get_all_reports, fun
+    %{worklog_id, user_id, user_name, email, content, date, group_name, template, receive_type, domain_name, domain_id, time_spent ,issue}).
+    (_, _, _)  -> 
+      [#report_mode{user_id=1, email = <<"test1@email">>, date={datetime, {{2015,8,20},{12,0,0}}}, group_name = <<"test group name">>, receive_type = <<"cc">>, issue = <<"issue1">>},
+       #report_mode{user_id=1, email = <<"test1@email">>, date={datetime, {{2015,8,21},{12,0,0}}}, group_name = <<"test group name">>, receive_type = <<"cc">>, issue = <<"issue1">>},
+       #report_mode{user_id=1, email = <<"test1@email">>, date={datetime, {{2015,8,22},{12,0,0}}}, group_name = <<"test group name">>, receive_type = <<"cc">>, issue = <<"issue1">>},
+       #report_mode{user_id=1, email = <<"test1@email">>, date={datetime, {{2015,8,22},{12,0,0}}}, group_name = <<"test group name">>, receive_type = <<"cc">>, issue = <<"issue2">>},
+    
+       #report_mode{user_id=2, email = <<"test2@email">>, date={datetime, {{2015,8,21},{12,0,0}}}, group_name = <<"test group name">>, receive_type = <<"cc">>, issue = <<"issue">>},
+       #report_mode{user_id=2, email = <<"test2@email">>, date={datetime, {{2015,8,22},{12,0,0}}}, group_name = <<"test group name">>, receive_type = <<"cc">>, issue = <<"issue">>},
+      
+       #report_mode{user_id=3, email = <<"test3@email">>, date={datetime, {{2015,8,21},{12,0,0}}}, group_name = <<"test group name">>, receive_type = <<"cc">>, issue = <<"issue">>}]
+      end),
+  ok = meck:expect(ddrt_db, get_group_users, fun
+    (_) -> %(group_user, {user_id, email, user_name, domain_name, report_type, receive_type}).
+        [
+        #group_user{user_id=1, email = <<"test1@email">>,  user_name = <<"test1">>, receive_type = <<"cc">>, report_type = <<"R">>},
+        #group_user{user_id=2, email = <<"test2@email">>,  user_name = <<"test2">>, receive_type = <<"cc">>, report_type = <<"R">>},
+        #group_user{user_id=3, email = <<"test3@email">>,  user_name = <<"test3">>, receive_type = <<"cc">>, report_type = <<"R">>},
+        #group_user{user_id=4, email = <<"test4@email">>,  user_name = <<"test4">>, receive_type = <<"cc">>, report_type = <<"R">>},
+        #group_user{user_id=4, email = <<"test5@email">>,  user_name = <<"test5">>, receive_type = <<"to">>, report_type = <<"NR">>}
+        ]
+  end),
+
+
+  ok = meck:new(neg_hydra, [non_strict]),
+
+  ok = meck:expect(neg_hydra, get_env, fun
+    (report_template) -> {ok, "test_template"}
+  end),
+
+  ok = meck:expect(neg_hydra, get_env, fun
+    (report_day, _) -> {ok, 3}
+  end),
+
+
+  %%736195 736196, 736197
+  ok = meck:new(ddrt_utils, [non_strict]),
+  ok = meck:expect(ddrt_utils, get_today_days, fun () -> 736197 end),
+  ok = meck:expect(ddrt_utils, get_str_today, fun() -> "2015-8-22" end),
+  ok = meck:expect(ddrt_utils, days_to_str_date, fun
+    (DayNums) ->
+      io:format("error: ~p", [DayNums]),
+      {Y, M, D} = calendar:gregorian_days_to_date(DayNums),
+      string:join([integer_to_list(Y), integer_to_list(M), integer_to_list(D)], "-")
+    end),
+
+  ok = meck:expect(ddrt_utils, get_days, fun
+      ({Y, M, D}) -> calendar:date_to_gregorian_days(Y, M, D);
+      ({datetime, {{Y, M, D}, _}}) -> calendar:date_to_gregorian_days(Y, M, D)
+    end),
+
+  ok = meck:expect(ddrt_utils, days_to_date, fun(DayNums) -> calendar:gregorian_days_to_date(DayNums) end),
+
+  ok = meck:expect(ddrt_utils, format_data_line, fun(_) -> "test data" end),
+  ok = meck:expect(ddrt_utils, get_jira_url, fun() -> "http://jira" end),
+
+
+  ok = meck:new(ddrt_runder, [non_strict]),
+  ok = meck:expect(ddrt_runder, run, fun(_) -> <<"test body">> end),
+
+  ok = meck:new(ddrt_mail, [non_strict]),
+  ok = meck:expect(ddrt_mail, send_mail, fun(#mail{to = To, cc = Cc, subject = Subject, body = Body})  -> 
+    ?assertEqual("test5@email", To),
+    ?assertEqual("test1@email;test2@email;test3@email;test4@email", Cc),
+    ?assertEqual(<<"test body">>, Body),
+    ?assert(is_list(Subject)),
+    true
+   end),
+
+  ?assert(is_pid(send_mail(Group))),
+
+  ok = meck:unload(ddrt_db),
+  ok = meck:unload(neg_hydra),
+  ok = meck:unload(ddrt_utils),
+  ok = meck:unload(ddrt_runder),
+  ok = meck:unload(ddrt_mail).
+
+
+send_remind_test() ->
+  Group = #groups{id = 1, scheduling_name = <<"test">>},
+  %(email_list, {email, user_name}).
+  ok = meck:new(ddrt_db, [non_strict]),
+  ok = meck:expect(ddrt_db, get_not_report_emails, fun(1) -> 
+    [#email_list{email= <<"test@email1.com">>, user_name = <<"test_user1">>}, 
+     #email_list{email= <<"test@email2.com">>, user_name = <<"test_user2">>}, 
+     #email_list{email= <<"test@email3.com">>, user_name = <<"test_user3">>},
+     #email_list{email= <<"test@email4.com">>, user_name = <<"test_user4">>}] 
+  end),
+
+  %ddrt_db:get_scheduling(Name)
+  ok = meck:expect(ddrt_db, get_scheduling, fun(<<"test">>)  -> {[], [{9, 30}]} end),
+
+  ok = meck:new(neg_hydra, [non_strict]),
+
+  ok = meck:expect(neg_hydra, get_env, fun
+    (report_address) -> {ok, "http://www.test.com"};
+    (remind_template) -> {ok, "test_remind_template"}
+  end),
+
+  ok = meck:new(ddrt_runder, [non_strict]),
+  ok = meck:expect(ddrt_runder, run, fun(_) -> <<"test remind">> end),
+
+  ok = meck:new(ddrt_utils, [non_strict]),
+  ok = meck:expect(ddrt_utils, get_str_today, fun() -> "2015-8-22" end),
+
+  ok = meck:new(ddrt_mail, [non_strict]),
+  ok = meck:expect(ddrt_mail, send_mail, fun
+    (#mail{to = "test@email1.com", cc = Cc, subject = Subject, body = Body}) -> 
+        ?assertEqual("", Cc),
+        ?assertEqual(<<"test remind">>, Body),
+        ?assert(is_list(Subject)),true;
+    (#mail{to = "test@email2.com", cc = Cc, subject = Subject, body = Body}) ->
+        ?assertEqual("", Cc),
+        ?assertEqual(<<"test remind">>, Body),
+        ?assert(is_list(Subject)),true;  
+    (#mail{to = "test@email3.com", cc = Cc, subject = Subject, body = Body}) ->
+        ?assertEqual("", Cc),
+        ?assertEqual(<<"test remind">>, Body),
+        ?assert(is_list(Subject)),true;  
+    (#mail{to = "test@email4.com", cc = Cc, subject = Subject, body = Body}) ->
+        ?assertEqual("", Cc),
+        ?assertEqual(<<"test remind">>, Body),
+        ?assert(is_list(Subject)),true
+   end),
+
+  ?assertEqual(ok, send_remind(Group)),
+
+  true = meck:validate(ddrt_db),
+  true = meck:validate(neg_hydra),
+  true = meck:validate(ddrt_utils),
+  true = meck:validate(ddrt_runder),
+  true = meck:validate(ddrt_mail),
+
+  ok = meck:unload(ddrt_db),
+  ok = meck:unload(neg_hydra),
+  ok = meck:unload(ddrt_utils),
+  ok = meck:unload(ddrt_runder),
+  ok = meck:unload(ddrt_mail).
+
+-endif.
