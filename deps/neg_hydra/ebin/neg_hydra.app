@@ -1,0 +1,10 @@
+{application,neg_hydra,
+             [{description,"neg_hydra"},
+              {vsn,"1.0.0"},
+              {modules,[neg_hydra,neg_hydra_app,neg_hydra_deps,
+                        neg_hydra_handler,neg_hydra_log,neg_hydra_request,
+                        neg_hydra_sup,neg_hydra_type]},
+              {registered,[neg_hydra,neg_hydra_sup]},
+              {mod,{neg_hydra_app,[]}},
+              {env,[]},
+              {applications,[kernel,stdlib]}]}.
