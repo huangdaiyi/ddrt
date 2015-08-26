@@ -7,7 +7,7 @@ start_link() ->
 	% Here did not start a new process 
     inets:start(),
     ddrt_db:start(),
-    odbc:start(),
+    ok = odbc:start(),
     supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 
 init([]) ->

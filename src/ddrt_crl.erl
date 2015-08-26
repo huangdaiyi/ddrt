@@ -32,7 +32,7 @@ delete_dailyhour(WorklogId) ->
 
 add_dailyhour(DailyHour, LoginId, UserName, Req) ->
     NewUserName = re:replace(UserName, "\\.", " ", [global, {return, list}]),
-	TimeSpent = ddrt_utils:to_float(ddrt_utils:get_value("timeSpent", DailyHour, "8")),
+	TimeSpent = ddrt_utils:to_float(ddrt_utils:get_value("timeSpent", DailyHour, 8.0)),
 	WorklogId = proplists:get_value("id", DailyHour),
 	Content = proplists:get_value("comment", DailyHour, ""),
 	Activity = ddrt_utils:get_crl_comment(Content, WorklogId),
@@ -192,3 +192,65 @@ log_decide(CrlNo) ->
 		_ -> error
 	end.
 
+
+%%% ===================================================================
+%%% Tests  
+%%% ===================================================================
+
+-ifdef(TEST).
+-include_lib("eunit/include/eunit.hrl").
+
+update_dailyhour_test() ->
+	ok = meck:new(ddrt_mssql_mgr, [non_strict]),
+	ok = meck:expect(ddrt_mssql_mgr, execute_sync, fun(Sql, Params) -> 
+		?assertEqual("UPDATE [DailyHours] SET [Date] = ?, [SpendTime] = ? ,[Activity] = ? WHERE [Activity] LIKE '%[AUTO#123]%' ESCAPE '['", Sql),
+		?assert(proplists:is_defined({sql_varchar, 23}, Params)),
+		?assert(proplists:is_defined({sql_decimal,15,2}, Params)),
+		?assert(proplists:is_defined({sql_wvarchar,200}, Params)), ok
+	 end),
+	?assertEqual(ok, update_dailyhour("5.0", <<"test content">>, <<"123">>)),
+
+	true = meck:validate(ddrt_mssql_mgr),
+	ok = meck:unload(ddrt_mssql_mgr).
+
+delete_dailyhour_test() ->
+	ok = meck:new(ddrt_mssql_mgr, [non_strict]),
+	ok = meck:expect(ddrt_mssql_mgr, execute_sync, fun(Sql, Params) -> 
+		?assertEqual("DELETE FROM [DailyHours] WHERE [Activity] LIKE '%[AUTO#123]%' ESCAPE '['" , Sql),
+		?assertEqual([], Params), ok
+	 end),
+	?assertEqual(ok, delete_dailyhour(<<"123">>)),
+
+	true = meck:validate(ddrt_mssql_mgr),
+	ok = meck:unload(ddrt_mssql_mgr).	
+
+% add_dailyhour_test() ->
+% 	DailyHour = [{"timeSpent", 3.0}, {"id", <<"12345">>}, {"comment", "test comment"}, {"key", "No_CrlNo"}],
+% 	LoginId = "ab43",
+% 	UserName = "test.user",
+% 	% ok = meck:new(ddrt_crl, [passthrough]),
+% 	% ok = meck:expect(ddrt_crl, get_params, fun
+% 	% 	("No_CrlNo", _, _)  -> [];
+% 	% 	(_, _, _) -> not_synchronized
+% 	% end),
+
+% 	ok = meck:expect(ddrt_jira, search, fun
+% 		(_Any) -> search_result
+% 	end),
+% 	ok = meck:expect(rfc4627, decode, fun
+% 		(_Any) when guard ->
+% 			body
+% 	end),
+% 	?assertEqual(ok, add_dailyhour(DailyHour, LoginId, UserName, req)),
+
+% 	ok = meck:expect(ddrt_mssql_mgr, execute_sync, fun(_Sql, _Params) ->  ok end),
+
+% 	%%ddrt_jira:search(Data, Req)
+
+% 	NewDailyHour = [{"timeSpent", 3.0}, {"id", <<"12345">>}, {"comment", "test comment"}, {"key", "CrlNo"}],
+% 	?assertEqual(ok, add_dailyhour(NewDailyHour, LoginId, UserName, req)).
+
+
+	%ok = meck:new()
+
+-endif.

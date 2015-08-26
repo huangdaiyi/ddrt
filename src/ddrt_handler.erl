@@ -1,27 +1,7 @@
 -module (ddrt_handler).
--author("benjamin.c.yan@newegg.com").
+-author("hardy.d.huang@newegg.com").
 -export([request/4,responsed/2]).
 -include("include/ddrt.hrl").
-
--define(LOGIN_PAGE, "/login.html").
-
-%%%================================================
-%%% request callback
-%%%================================================
-% request(get, Paths, DocRoot, Req) ->
-%     do_get([string:to_lower(P) || P <- Paths], DocRoot, Req);
-
-% request(post, Paths, DocRoot, Req) ->
-%     do_post([string:to_lower(P) || P <- Paths], DocRoot, Req);
-
-% request(put, Paths, DocRoot, Req) ->
-%     do_put([string:to_lower(P) || P <- Paths], DocRoot, Req);
-
-% request(delete, Paths, DocRoot, Req) ->
-%     do_delete(Paths, DocRoot, Req);
-
-% request(head, Paths, DocRoot, Req) ->
-%     do_head([string:to_lower(P) || P <- Paths], DocRoot, Req).
     
 responsed(_Code, _Req) ->
     ok.
@@ -60,7 +40,6 @@ check_login_jira(Req) ->
              Content;
         _ ->
             throw({termination, 401,  [], <<>>})
-            %throw({termination, 302,  [{"Location", Page},{"Content-Type", "text/html; charset=UTF-8"}], <<>>})
     end.
 
 
@@ -87,7 +66,7 @@ do_get(["api", "v1", "report", "user", UserId, DayNum], _DocRoot, _Req)->
     do_get(["api", "v1", "report", "user", UserId, ddrt_utils:get_str_today(), DayNum], _DocRoot, _Req);
     
 do_get(["api", "v1", "report", "user", UserId, Date, DayNum], _DocRoot, _Req) ->
-    Result = ddrt_db:get_user_report(list_to_binary(Date), DayNum, list_to_binary(UserId)),
+    Result = ddrt_db:get_user_report(list_to_binary(Date), list_to_binary(DayNum), list_to_binary(UserId)),
     Body = ddrt_utils:build_report_body(Result),
     {200, [{"Content-Type","JSON"}], rfc4627:encode(Body)};
 
@@ -325,3 +304,254 @@ delete_reports(DeleteReprots, UserId, Req) ->
             end
         end || {obj, R} <- DeleteReprots],
     ddrt_db:delete_report(WorklogIds, UserId), ok.
+
+
+%%% ===================================================================
+%%% Tests  
+%%% ===================================================================
+
+-ifdef(TEST).
+-include_lib("eunit/include/eunit.hrl").
+
+responsed_test() ->
+   ?assertEqual(ok, responsed(200, "req")).
+
+request_test() ->
+%Method, Paths, DocRoot, Req
+    ok = meck:new(ddrt_jira, [non_strict]),
+    ok = meck:expect(ddrt_jira, login_info, fun 
+        (bad_req) ->  {400, [], <<>>};
+        (req) -> {200, [], <<>>} 
+    end),
+
+    ?assertEqual({404, [], <<>>}, request(get, [], "www", req)),  
+    ?assertEqual({404, [], <<>>}, request(head, [], "www", req)), 
+
+    ?assertEqual({404, [], <<>>}, request(post, [], "www", req)),    
+    ?assertEqual({401,  [], <<>>},  request(post, [], "www", bad_req)), 
+
+    ?assertEqual({404, [], <<>>}, request(put, [], "www", req)),    
+    ?assertEqual({401,  [], <<>>},  request(put, [], "www", bad_req)), 
+
+    ?assertEqual({404, [], <<>>}, request(delete, [], "www", req)),    
+    ?assertEqual({401,  [], <<>>},  request(delete, [], "www", bad_req)),
+
+    ?assertEqual({404,  [], <<>>},  request(other, [], "www", bad_req)),
+
+    true = meck:validate(ddrt_jira),
+    ok = meck:unload(ddrt_jira).
+
+validate_test() ->
+    ok = meck:new(ddrt_jira, [non_strict]),
+    ok = meck:expect(ddrt_jira, login_info, fun 
+        (bad_req) ->  {400, [], <<>>};
+        (req) -> {200, [], <<>>} 
+    end),
+
+    ?assertEqual(ok, validate(post,["api", "v1", "jira", "login"], "www", req)),
+    ?assertEqual(ok, validate(get, [], "www", req)),
+    ?assertEqual(ok, validate(head, [], "www", req)),
+
+    ?assertEqual(<<>>, validate(post, [], "www", req)),
+    ?assertEqual(<<>>, validate(put, [], "www", req)),
+    ?assertEqual(<<>>, validate(delete, [], "www", req)),
+
+    ?assertThrow({termination, 401,  [], <<>>},  validate(post, [], "www", bad_req)), 
+    ?assertThrow({termination, 401,  [], <<>>},  validate(put, [], "www", bad_req)), 
+    ?assertThrow({termination, 401,  [], <<>>},  validate(delete, [], "www", bad_req)), 
+
+    true = meck:validate(ddrt_jira),
+    ok = meck:unload(ddrt_jira).
+
+check_login_jira_test() ->
+    ok = meck:new(ddrt_jira, [non_strict]),
+    ok = meck:expect(ddrt_jira, login_info, fun 
+        (bad_req) ->  {400, [], <<>>};
+        (req) -> {200, [], <<"logininfo">>} 
+    end),
+
+    ?assertEqual(<<"logininfo">>,  check_login_jira(req)), 
+    ?assertThrow({termination, 401,  [], <<>>},  check_login_jira(bad_req)),
+
+    true = meck:validate(ddrt_jira),
+    ok = meck:unload(ddrt_jira).
+
+do_get_users_test() ->
+    %api/v1/users
+    ok = meck:new(ddrt_db, [non_strict]),
+    ok = meck:expect(ddrt_db, select, fun(get_users,userentity, _) -> [#userentity{id = "1"}] end),
+
+    ok = meck:new(rfc4627, [non_strict]),
+    ok = meck:expect(rfc4627, encode, fun(_Any) -> "[json_obj]" end),
+
+    ?assertMatch({200, [], _}, do_get(["api", "v1", "users"], "www", req)),
+    
+    true = meck:validate(ddrt_db),
+    true = meck:validate(rfc4627),
+
+    ok = meck:unload(ddrt_db),
+    ok = meck:unload(rfc4627).
+
+do_get_user_test() ->
+    %"api/v1/user/{UserId}
+    ok = meck:new(ddrt_db, [non_strict]),
+    ok = meck:expect(ddrt_db, select, fun(get_user,userentity, [Id]) -> 
+        ?assertEqual("1", Id),
+        [#userentity{id = Id}] end),
+
+    ok = meck:new(rfc4627, [non_strict]),
+    ok = meck:expect(rfc4627, encode, fun(_Any) -> "json_obj" end),
+
+    ?assertMatch({200, [], _}, do_get(["api", "v1", "user", "1"], "www", req)),
+
+    true = meck:validate(ddrt_db),
+    true = meck:validate(rfc4627),
+
+    ok = meck:unload(ddrt_db),
+    ok = meck:unload(rfc4627).
+
+do_get_reports_test() ->
+    %"api/v1/reports/{GroupID}/{Date[options]}" ["api", "v1", "reports", GroupID, Date
+    ok = meck:new(ddrt_db, [non_strict]),
+    ok = meck:expect(ddrt_db, get_report, fun(Date,DayNum, GroupId) -> 
+        ?assertEqual(<<"2015-8-25">>, Date),
+        ?assertEqual(<<"7">>, DayNum),
+        ?assertEqual(<<"1">>, GroupId),
+        [#report_mode{worklog_id = "123"}] end),
+
+    ok = meck:new(rfc4627, [non_strict]),
+    ok = meck:expect(rfc4627, encode, fun(_Any) -> "[json_obj]" end),
+
+    ?assertMatch({200, [{"Content-Type","JSON"}], _}, do_get(["api", "v1", "reports", "1", "2015-8-25"], "www", req)),
+
+    true = meck:validate(ddrt_db),
+    true = meck:validate(rfc4627),
+
+    ok = meck:unload(ddrt_db),
+    ok = meck:unload(rfc4627).
+
+
+do_get_report_user_test() ->
+    %"api/v1/report/user/{UserId}/{Date[option]}/{DayNum}
+    ok = meck:new(ddrt_db, [non_strict]),
+    ok = meck:expect(ddrt_db, get_user_report, fun
+        (<<"2015-8-24">>,DayNum, UserId) -> 
+            ?assertEqual(<<"7">>, DayNum),
+            ?assertEqual(<<"1">>, UserId),
+            [#report_mode{}];
+        (Date, DayNum, UserId) ->
+            ?assertEqual(list_to_binary(ddrt_utils:get_str_today()), Date),
+            ?assertEqual(<<"7">>, DayNum),
+            ?assertEqual(<<"1">>, UserId),
+            [#report_mode{}]
+    end),
+
+    ok = meck:new(rfc4627, [non_strict]),
+    ok = meck:expect(rfc4627, encode, fun(_Any) -> "[json_obj]" end),
+    %["api", "v1", "report", "user", UserId, Date, DayNum]
+    ?assertMatch({200, [{"Content-Type","JSON"}], _}, do_get(["api", "v1", "report", "user", "1", "2015-8-24", "7"], "www", req)),
+    ?assertMatch({200, [{"Content-Type","JSON"}], _}, do_get(["api", "v1", "report", "user", "1", "7"], "www", req)),
+
+    true = meck:validate(ddrt_db),
+    true = meck:validate(rfc4627),
+
+    ok = meck:unload(ddrt_db),
+    ok = meck:unload(rfc4627).
+
+do_get_issue_prev_test() ->
+    ok = meck:new(ddrt_db, [non_strict]),
+    ok = meck:expect(ddrt_db, get_prev_issues, fun
+            (UserId) -> 
+                ?assertEqual(<<"1">>, UserId),
+                [#history_issue{}]
+    end),
+
+    ok = meck:new(rfc4627, [non_strict]),
+    ok = meck:expect(rfc4627, encode, fun(_Any) -> "[json_obj]" end),
+
+    ?assertMatch({200, [{"Content-Type","JSON"}], _}, do_get(["api", "v1", "issue", "prev", "1"], "www", req)),
+
+    true = meck:validate(ddrt_db),
+    true = meck:validate(rfc4627),
+
+    ok = meck:unload(ddrt_db),
+    ok = meck:unload(rfc4627).
+
+do_get_refresh__test() ->
+    %"api/v1/db/refresh"
+    ?assertMatch({200, [{"Content-Type", "text/plain"}], ""}, do_get(["api", "v1", "db", "refresh"],  "www", req)),
+    spawn(fun()  -> register(ddrt_sup, self()), timer:sleep(3000) end),
+    ?assertMatch({200, [{"Content-Type", "text/plain"}], ""}, do_get(["api", "v1", "db", "refresh"],  "www", req)).
+
+
+do_get_jira_project_test() ->
+    ok = meck:new(ddrt_jira, [non_strict]),
+    ok = meck:expect(ddrt_jira, project, fun
+            (req) -> {200, [], <<>>}
+    end),
+    ?assertEqual({200, [], <<>>}, do_get(["api", "v1", "jira", "project"],  "www", req)),
+
+    true = meck:validate(ddrt_jira),
+    ok = meck:unload(ddrt_jira).
+
+do_get_jira_login_info_test() ->
+    ok = meck:new(ddrt_jira, [non_strict]),
+    ok = meck:expect(ddrt_jira, login_info, fun
+            (req) -> {200, [], <<"user_login_info">>}
+    end),
+    ?assertMatch({200, [], <<"user_login_info">>}, do_get(["api", "v1", "jira", "login"],  "www", req)),
+
+    true = meck:validate(ddrt_jira),
+    ok = meck:unload(ddrt_jira).
+
+do_get_jira_user_info_test() ->
+    %"api/v1/jira/user
+    ok = meck:new(ddrt_jira, [non_strict]),
+    ok = meck:expect(ddrt_jira, login_info, fun
+            (req) -> {200, [], <<"[{\"name\", \"testuser\"}]">>}
+    end),
+   
+
+    ok = meck:expect(ddrt_jira, user_info, fun
+        ("testuser", req) -> {200, [], <<"[{\"emailAddress\", \"test\"}]">>}
+    end),
+
+    ok = meck:expect(ddrt_db, get_user_by_email, fun
+        (<<"test">>)  -> [#userentity{id = <<"1">>, group_name = "test group name", domain_name = "test domain name"}]
+    end),
+
+    ok = meck:new(rfc4627, [non_strict]),
+    ok = meck:expect(rfc4627,decode, fun
+        (<<"[{\"name\", \"testuser\"}]">>) ->   {ok, {obj, [{"name", <<"testuser">>}]}, []};
+        (<<"[{\"emailAddress\", \"test\"}]">>) -> {ok, {obj, [{"emailAddress", <<"test">>}]}, []}
+    end),
+
+    ok = meck:expect(rfc4627, encode, fun
+        (_Any) -> "user_info_json_string"
+    end),
+
+    ?assertMatch({200, [], _}, do_get(["api", "v1", "jira", "user"],  "www", req)),
+
+    true = meck:validate(ddrt_db),
+    true = meck:validate(rfc4627),
+    true = meck:validate(ddrt_jira),
+
+    ok = meck:unload(ddrt_db),
+    ok = meck:unload(rfc4627),
+    ok = meck:unload(ddrt_jira).
+
+do_get_jira_jira_status_test() ->
+    ok = meck:new(ddrt_jira, [non_strict]),
+    ok = meck:expect(ddrt_jira, get_all_status, fun
+            (req) -> {200, [], <<"issue_status">>}
+    end),
+    ?assertEqual({200, [], <<"issue_status">>}, do_get(["api", "v1", "jira", "status"],  "www", req)),
+
+    true = meck:validate(ddrt_jira),
+    ok = meck:unload(ddrt_jira).
+
+% do_post_login_test() ->
+%     %"api"/v1/jira/login"
+%     ok = meck:new()
+
+-endif.

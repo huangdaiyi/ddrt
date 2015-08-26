@@ -3,9 +3,7 @@
 								[CreatedUserName],[ProcessModelId],[TaskId],[TaskName],[CommonProcessId],[Phase],[TaskType])
 							VALUES(0,?,?,?,GETDATE(),?,?,?,?,?,?,?,?)").
 
--define (UPDATE_DAILYHOUR(WorklogId), "UPDATE [DailyHours] SET [Date] = ?, 
-									[SpendTime] = ? ,[Activity] = ? 
-							WHERE [Activity] LIKE '%[AUTO#"++ WorklogId ++"]%' ESCAPE '['").
+-define (UPDATE_DAILYHOUR(WorklogId), "UPDATE [DailyHours] SET [Date] = ?, [SpendTime] = ? ,[Activity] = ? WHERE [Activity] LIKE '%[AUTO#"++ WorklogId ++"]%' ESCAPE '['").
 
 -define (DELETE_DAILYHOUR(WorklogId), "DELETE FROM [DailyHours] WHERE [Activity] LIKE '%[AUTO#"++WorklogId++"]%' ESCAPE '['").
 

@@ -30,7 +30,7 @@
 -record(template_opts, {
           module = template_parse,
           source,
-          renderer = render,
+          render = render,
           compile_opts = [report, return, {auto_escape, false}, force_recompile, {out_dir, false},{debug_info , true}],
           compile_vars = [],
           render_opts = [],
