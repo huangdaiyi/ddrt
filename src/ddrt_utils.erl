@@ -7,6 +7,8 @@
          time_to_utc_string/1, get_value/2, get_value/3,
          get_orignal_value/2, get_orignal_value/3, get_jira_url/0, get_crl_comment/2, 
          to_float/1, to_sql_wvarchar/1, get_mssql_day_string/0, send_http/4, send_http/5]).
+
+-export([local_time/0]).
 -include ("include/ddrt.hrl").
 
 build_report_body(Reports) ->
@@ -171,6 +173,10 @@ send_http(Method, Url, HttpHeaders, Body, Timeout) ->
 to_sql_wvarchar(Content) ->
     unicode:characters_to_binary(Content, utf8, {utf16, little}).
 
+-spec local_time() -> {Hour :: pos_integer(), Minute :: pos_integer()}.
+local_time() ->
+    {_, {Hour, Minute, _}} = calendar:local_time(),
+    {Hour, Minute}.
 
 %%% ===================================================================
 %%% Tests  
