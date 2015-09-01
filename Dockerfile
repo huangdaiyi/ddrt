@@ -4,8 +4,7 @@ WORKDIR /ddrt/
 #RUN rm -rf ddrt
 #RUN mkdir ddrt
 #COPY . /ddrt/
-RUN echo "Asia/Shanghai" > /etc/timezone
-RUN dpkg-reconfigure -f noninteractive tzdata
+RUN cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 ADD . /ddrt/
 CMD ./start.sh
 
