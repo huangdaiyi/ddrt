@@ -1,4 +1,4 @@
--sname ddrt@wcmis073
+-sname ddrt
 -setcookie ddrt_dev
 +K true
 -kernel error_logger silent
@@ -8,3 +8,4 @@
 -pa deps/merl/ebin
 -pa deps/meck/ebin
 -s neg_hydra
+-noshell 
