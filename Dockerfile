@@ -4,6 +4,8 @@ WORKDIR /ddrt/
 #RUN rm -rf ddrt
 #RUN mkdir ddrt
 #COPY . /ddrt/
+RUN echo "Asia/BeiJing" > /etc/timezone
+RUN dpkg-reconfigure -f noninteractive tzdata
 ADD . /ddrt/
 CMD ./start.sh
 
