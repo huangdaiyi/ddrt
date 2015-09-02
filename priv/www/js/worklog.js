@@ -110,6 +110,7 @@ $(document).ready(function(){
             if (reportObj.data().action === "delete") {
                 reportObj.append(reportObj.data().children);
                 reportObj.data().action = "update";
+
                 reportObj.show();
             } 
         }
@@ -375,6 +376,7 @@ function resetForm(data, form){
                 $tr.data("worklogId",  findLodId(responseObj, $tr.data().key));
             }
             $tr.data().action = "update";
+            $tr.addClass("update");
         }
     });
 };
@@ -506,6 +508,7 @@ var initInterface= function(data, jira_data) {
         reportObj.find("textarea").val(data[i].content || "").textareaAutoResize(worklog.autoResizeOption);
         reportObj.find("input[name=timeSpent]").val(data[i].timeSpent || "");
         reportObj.appendTo("#report-tb").data({key:objId, worklogId:data[i].worklogId + "", action:"update"});
+        reportObj.addClass("update");
         worklog.global.selected.push(objId);
     }
     

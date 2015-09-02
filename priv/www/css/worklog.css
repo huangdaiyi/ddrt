@@ -179,3 +179,7 @@
             #add-other span.btn:hover{
                 color: #000;
             }
+
+            #report-tb tr.update{
+                background-color:#efefef;
+            }
