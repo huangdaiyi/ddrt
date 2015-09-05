@@ -152,10 +152,7 @@
                 vertical-align: middle;
                 color: #333333;
             }
-            
-            #footer a{
-                color: #333333;
-            }
+
             .loading{
                 width: 420px;
                 background-color: white;
@@ -182,4 +179,16 @@
 
             #report-tb tr.update{
                 background-color:#efefef;
+            }
+            .report-part{
+                position: relative;
+                height: 530px;
+            }
+            .report-sumbit{
+                position: absolute;
+                bottom: 20px;
+            }
+            .worklog-wrap{
+                height: 380px;
+                overflow-y: auto;
             }
