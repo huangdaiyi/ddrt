@@ -180,15 +180,6 @@
             #report-tb tr.update{
                 background-color:#efefef;
             }
-            .report-part{
-                position: relative;
-                height: 530px;
-            }
-            .report-sumbit{
-                position: absolute;
-                bottom: 20px;
-            }
             .worklog-wrap{
-                height: 380px;
-                overflow-y: auto;
+                min-height:400px;
             }

@@ -6,7 +6,7 @@
          string_to_binary/1, binary_to_string/1,
          time_to_utc_string/1, get_value/2, get_value/3,
          get_orignal_value/2, get_orignal_value/3, get_jira_url/0, get_crl_comment/2, 
-         to_float/1, to_sql_wvarchar/1, get_mssql_day_string/0, send_http/4, send_http/5]).
+         to_float/1, to_sql_wvarchar/1, get_mssql_day_string/0, send_http/4, send_http/5, to_integer/1]).
 
 -export([local_time/0]).
 -include ("include/ddrt.hrl").
@@ -177,6 +177,11 @@ to_sql_wvarchar(Content) ->
 local_time() ->
     {_, {Hour, Minute, _}} = calendar:local_time(),
     {Hour, Minute}.
+
+to_integer(Bin) when is_binary(Bin) ->
+    to_integer(binary_to_list(Bin));
+to_integer(List) ->
+    list_to_integer(List).
 
 %%% ===================================================================
 %%% Tests  

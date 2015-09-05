@@ -8,6 +8,7 @@
         <!-- Bootstrap -->
         <link href="css/bootstrap.min.css" rel="stylesheet" type="text/css">
         <link href="css/pagination.min.css" rel="stylesheet" type="text/css">
+        <link href="css/animate.min.css" rel="stylesheet" type="text/css">
         <link href="css/worklog.min.css" rel="stylesheet" type="text/css">
         <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
         <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -107,7 +108,7 @@
                 </div>
             </div>
             <div class="row">
-                <div class="col-sm-12 report-part">
+                <div class="col-sm-12">
                     <form id="reportForm" method="post" action="api/v1/jira/worklog">
                         <fieldset id="reports" class="scheduler-border form-group" >
                             <legend class="scheduler-border">
@@ -115,7 +116,7 @@
                                   
                                 </label>
                             </legend>
-                            <div class="table-responsive  worklog-wrap">
+                            <div class="table-responsive worklog-wrap">
                                 <table  class="table table-hover">
                                     <thead>
                                         <tr>
@@ -131,7 +132,7 @@
                                 
                             </div>
                         </fieldset>
-                        <div class="col-sm-2 col-sm-offset-5 report-sumbit">
+                        <div class="col-sm-2 col-sm-offset-5 form-group">
                                 <button  id="submitReport" data-loading-text="Loading..." type="submit" class="btn btn-primary btn-lg btn-block">Submit</button>
                         </div>
                     </form>
@@ -178,7 +179,7 @@
             <a href="mailto:Hardy.D.Huang@newegg.com?subject=Feedback for DDRT&body=Feedback to us">Contact Us</a>
         </div>
 
-        <script type="text/javascript" src="js/worklog.min.js"></script>
+        <script type="text/javascript" src="js/worklog.js"></script>
         
     </body>
 </html>

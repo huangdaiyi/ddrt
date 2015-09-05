@@ -1,5 +1,5 @@
 -module  (ddrt_crl).
--export  ([add_dailyhour/4, update_dailyhour/3, delete_dailyhour/1]).
+-export  ([add_dailyhour/4, update_dailyhour/3, delete_dailyhour/1, get_internal_key_crlno/1]).
 -include ("include/ddrt.hrl").
 -include ("include/crl_script.hrl").
 -define  (PHASE_MAP(Activity), proplists:get_value(Activity, 
@@ -144,7 +144,7 @@ get_common_crlno(FixVersion, Author, Activity) ->
 	end.
 
 get_common_crlno(Author, undefined) -> 
-	get_common_crlno(Author, "internal"); %not_synchronized;
+	get_common_crlno(Author, "Internal"); %not_synchronized;
 get_common_crlno(Author, Activity) ->
 	case ddrt_mssql_mgr:execute(?GET_TEAM_BY_MEMBER(Author), []) of
 		{selected, _, []}-> 0; %"N/A";
@@ -153,7 +153,7 @@ get_common_crlno(Author, Activity) ->
 
 %% add mapping
 add_commonprocess_map(FixVersion, Author, Activity) ->
-	case ddrt_mssql_mgr:execute(?ADD_COMMONPROCESS_MAP, [{{sql_char,20},[Author]}, 
+	case ddrt_mssql_mgr:execute(?ADD_COMMONPROCESS_MAP, [{{sql_char,20},[ddrt_utils:string_to_binary(Author)]}, 
 		{{sql_wvarchar, 200}, [ddrt_utils:to_sql_wvarchar("Project For Jira:" ++ FixVersion)]},
 		{{sql_wvarchar, 200}, [ddrt_utils:to_sql_wvarchar(FixVersion)]}])  of
 		{updated, 2} -> get_common_crlno(FixVersion, Author, Activity);
@@ -167,15 +167,15 @@ get_activity_crlno_mapping_by_group(GroupName, []) ->
 get_activity_crlno_mapping_by_group(GroupName, "STUDY & TRAINING")->
 	get_activity_crlno_mapping_by_group(GroupName, "StudyAndTraining");
 get_activity_crlno_mapping_by_group(GroupName, Activity) ->
-	case ddrt_mssql_mgr:execute(?GET_CRLNO_BY_GROUP, [{{sql_varchar, 40}, [GroupName]}, {{sql_varchar, 40}, [Activity]}]) of
+	case ddrt_mssql_mgr:execute(?GET_CRLNO_BY_GROUP, [{{sql_varchar, 40}, [GroupName]}, {{sql_varchar, 40}, [ddrt_utils:string_to_binary(Activity)]}]) of
 		{selected, _, []} -> get_internal_key_crlno(GroupName);
-		{selected, _, [{CrlNo}|_]} -> list_to_integer(CrlNo)
+		{selected, _, [{CrlNo}|_]} -> ddrt_utils:to_integer(CrlNo)
 	end.
 
 get_internal_key_crlno(GroupName) ->
-	case ddrt_mssql_mgr:execute(?GET_CRLNO_BY_GROUP, [{{sql_varchar, 40}, [GroupName]}, {{sql_varchar, 40}, ["internal"]}]) of
-		{selected, _, []} -> not_synchronized; %throw({termination, 400, [], "The activityMap does not contain internal key"});
-		{selected, _, [{CrlNo}|_]} -> list_to_integer(CrlNo)
+	case ddrt_mssql_mgr:execute(?GET_CRLNO_BY_GROUP, [{{sql_varchar, 40}, [GroupName]}, {{sql_varchar, 40}, [<<"Internal">>]}]) of
+		{selected, _, []} -> 0; %throw({termination, 400, [], "The activityMap does not contain internal key"});
+		{selected, _, [{CrlNo}|_]} -> ddrt_utils:to_integer(CrlNo)
 	end.
 
 

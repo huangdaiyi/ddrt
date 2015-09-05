@@ -258,6 +258,8 @@ function orderInit(){
         $("#reportForm textarea").textareaAutoResize({rows:1,cols:75, maxRow:10});
         closeLoading();
         $("#collapse").popover({"content":"Hey, Welcome DDRT. Click here to add more issue !"}).popover('show');
+        showAnimated("#reports", "fadeInDownBig");
+        showAnimated("#submitReport", "fadeInUpBig");
         //initProjects().done(function(){initPagination();}).fail(closeLoading);
      }; 
     loadTodayIssues(init);
@@ -628,3 +630,7 @@ function sendAjax(url, beforeSend, successCallback, errorCallback, method, data,
         });
     return dtd.promise();
 };
+
+function showAnimated(objId, classes){
+    $(objId).addClass(classes + ' animated');
+}
