@@ -633,4 +633,4 @@ function sendAjax(url, beforeSend, successCallback, errorCallback, method, data,
 
 function showAnimated(objId, classes){
     $(objId).addClass(classes + ' animated');
-}
+};
