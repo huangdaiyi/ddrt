@@ -2,7 +2,9 @@ var worklog = {
     global:{
         pageSize:5,
         selected:[],
-        checkedTag:'<span class="glyphicon glyphicon-ok pull-right" aria-hidden="true"></span>'
+        checkedTag:'<span class="glyphicon glyphicon-ok pull-right" aria-hidden="true"></span>',
+        cookieSplit:"[-@~@#]",
+        ddrtSessionName:"ddrt_cur_session"
     },
     autoResizeOption:{rows:1,cols:75, maxRow:10},
     getReportObj:function(objId){
@@ -49,6 +51,7 @@ $(document).ready(function(){
                 cache:false,
                 data:loginForm$.serialize(),
                 success: function(data, status, xhr){
+                    rememberMe(loginForm$.find("#rememberMe").prop("checked"));
                     closeLogin();
                     showLoading("Init user, please waiting...");
                     setUser(data);
@@ -72,7 +75,17 @@ $(document).ready(function(){
 
     });
 
-    initUser().done(orderInit).fail(closeLoading).fail(showLogin);
+    initUser().done(orderInit).fail(closeLoading).fail(function(){
+        var user = getSession();
+        if (user) {
+            var loginForm = $("#loginForm");
+            loginForm.find("#username").val(user[0]);
+            loginForm.find("#password").val(user[1]);
+            loginForm.find("#loginBtn").trigger("click");
+        }else{
+            showLogin();
+        }
+    });
      
     $("#selProject, #selStatus").change(function(){
         if(!$("#collapse").data.init){
@@ -258,7 +271,7 @@ function orderInit(){
         $("#reportForm textarea").textareaAutoResize({rows:1,cols:75, maxRow:10});
         closeLoading();
         $("#collapse").popover({"content":"Hey, Welcome DDRT. Click here to add more issue !"}).popover('show');
-        showAnimated("#reports", "fadeInDownBig");
+        showAnimated("#reports", "fadeInDown");
         showAnimated("#submitReport", "fadeInUpBig");
         //initProjects().done(function(){initPagination();}).fail(closeLoading);
      }; 
@@ -343,7 +356,7 @@ var submitReport = function(form){
         return;
     }
     showLoading("submit, please waiting...");
-    var reportObj = {"create": [], "update":[], "delete":[]},tr$, action="";
+    var reportObj = {"create": [], "update":[], "delete":[]},tr$, action="", item ={};
     $("#reports table tbody tr").each(function(){
         var tr$ = $(this);
         action = tr$.data("action");
@@ -633,4 +646,21 @@ function sendAjax(url, beforeSend, successCallback, errorCallback, method, data,
 
 function showAnimated(objId, classes){
     $(objId).addClass(classes + ' animated');
+};
+
+function rememberMe(bol){
+    if (bol) {
+        var username = $("#username").val(), 
+        password = $("#password").val();
+        setCookie(worklog.global.ddrtSessionName, EnEight(username + worklog.global.cookieSplit + password), 30);
+    }
+};
+
+function getSession(){
+    var ddrt_cur_session = getCookie(worklog.global.ddrtSessionName);
+    if (ddrt_cur_session) {
+        var user = DeEight(ddrt_cur_session).split(worklog.global.cookieSplit);
+        return user;
+    }
+    return false;
 };
