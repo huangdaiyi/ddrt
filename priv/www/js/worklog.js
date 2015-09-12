@@ -4,7 +4,11 @@ var worklog = {
         selected:[],
         checkedTag:'<span class="glyphicon glyphicon-ok pull-right" aria-hidden="true"></span>',
         cookieSplit:"[-@~@#]",
-        ddrtSessionName:"ddrt_cur_session"
+        ddrtSessionName:"ddrt_cur_session",
+        needWelcomeName:"ddrt_show_welcome",
+        needWelcome: function(){
+            return !getCookie(this.needWelcomeName);
+        }
     },
     autoResizeOption:{rows:1,cols:75, maxRow:10},
     getReportObj:function(objId){
@@ -169,6 +173,7 @@ $(document).ready(function(){
     });
 
     $("#loginOut").on("click", function(){
+        setCookie(worklog.global.ddrtSessionName, "", -1);
         sendDelete("api/v1/jira/login", {"content-type":"application/json"}, function(){
             window.location.href = "/login.html";
         });
@@ -238,7 +243,7 @@ $(document).ready(function(){
         }
 
     });
-
+  
     $(document).click(function(){
         $("#collapse").popover("destroy");
     });
@@ -270,9 +275,11 @@ function orderInit(){
     var  init = function(){
         $("#reportForm textarea").textareaAutoResize({rows:1,cols:75, maxRow:10});
         closeLoading();
+        worklog.global.needWelcome() &&
         $("#collapse").popover({"content":"Hey, Welcome DDRT. Click here to add more issue !"}).popover('show');
+        setCookie(worklog.global.needWelcomeName, "1", 7);
         showAnimated("#reports", "fadeInDown");
-        showAnimated("#submitReport", "fadeInUpBig");
+        showAnimated("#submitReport", "fadeInUp");
         //initProjects().done(function(){initPagination();}).fail(closeLoading);
      }; 
     loadTodayIssues(init);
@@ -430,16 +437,6 @@ var buildJQL = function(){
     if (project$.val() != -1) {
         jql += "project='" + project$.text() + "' and ";
     }
-    //var status = $("#issues-wrap input:checkbox[name=status]:checked");
-    // if (status.size() < 1) {
-    //     //alert("At least choose a status");
-    //     return;
-    // }
-    // var statusArr = [];
-    // status.each(function(){
-    //     statusArr.push(this.value);
-    // });
-    //jql += "status in ('" + statusArr.join("','") + "') order by created, priority desc";
     jql += "status='" + $("#selStatus option:selected").text() + "'";
     var query = {};
     query.jql = jql;
