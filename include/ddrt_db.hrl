@@ -54,9 +54,9 @@ on d.group_id=gu.group_id where gu.group_id=? and d.name = ?">> },
 				INNER JOIN domains AS d ON gu.domain_id = d.id 
 				WHERE r.`date` BETWEEN ? AND DATE_ADD(?,INTERVAL ? DAY) AND u.id = ? AND u.type = 'R'">>},
 
-{get_group_user, <<"SELECT gu.`user_id`, u.`email`, u.`user_name`, u.`type` AS report_type, d.`name` AS domain_name, gu.`receive_type` FROM `users` AS u 
+{get_group_user, <<"SELECT gu.`user_id`, u.`email`, u.`user_name`, u.`type` AS report_type, d.`id` AS domain_id, d.`name` AS domain_name, gu.`receive_type` FROM `users` AS u 
 						INNER JOIN  `groups_users` AS gu ON gu.`user_id` = u.`id` LEFT JOIN `domains` AS d ON  gu.`domain_id` = d.`id`
-						WHERE gu.`group_id` = ?;">>},
+						WHERE gu.`group_id` = ? ORDER BY domain_id;">>},
 
 
 {check_today_report, <<"SELECT r.Id FROM reports AS r  

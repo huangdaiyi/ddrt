@@ -11,7 +11,7 @@
 
 -record (id, {id}).
 
--record (group_user, {user_id, email, user_name, domain_name, report_type, receive_type}).
+-record (group_user, {user_id, email, user_name, domain_id, domain_name, report_type, receive_type}).
 
 -record (group_report_user, {email, user_name, user_id}).
 
