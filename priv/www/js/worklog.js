@@ -2,7 +2,13 @@ var worklog = {
     global:{
         pageSize:5,
         selected:[],
-        checkedTag:'<span class="glyphicon glyphicon-ok pull-right" aria-hidden="true"></span>'
+        checkedTag:'<span class="glyphicon glyphicon-ok pull-right" aria-hidden="true"></span>',
+        cookieSplit:"[-@~@#]",
+        ddrtSessionName:"ddrt_cur_session",
+        needWelcomeName:"ddrt_show_welcome",
+        needWelcome: function(){
+            return !getCookie(this.needWelcomeName);
+        }
     },
     autoResizeOption:{rows:1,cols:75, maxRow:10},
     getReportObj:function(objId){
@@ -49,6 +55,7 @@ $(document).ready(function(){
                 cache:false,
                 data:loginForm$.serialize(),
                 success: function(data, status, xhr){
+                    rememberMe(loginForm$.find("#rememberMe").prop("checked"));
                     closeLogin();
                     showLoading("Init user, please waiting...");
                     setUser(data);
@@ -72,7 +79,17 @@ $(document).ready(function(){
 
     });
 
-    initUser().done(orderInit).fail(closeLoading).fail(showLogin);
+    initUser().done(orderInit).fail(closeLoading).fail(function(){
+        var user = getSession();
+        if (user) {
+            var loginForm = $("#loginForm");
+            loginForm.find("#username").val(user[0]);
+            loginForm.find("#password").val(user[1]);
+            loginForm.find("#loginBtn").trigger("click");
+        }else{
+            showLogin();
+        }
+    });
      
     $("#selProject, #selStatus").change(function(){
         if(!$("#collapse").data.init){
@@ -156,6 +173,7 @@ $(document).ready(function(){
     });
 
     $("#loginOut").on("click", function(){
+        setCookie(worklog.global.ddrtSessionName, "", -1);
         sendDelete("api/v1/jira/login", {"content-type":"application/json"}, function(){
             window.location.href = "/login.html";
         });
@@ -225,7 +243,7 @@ $(document).ready(function(){
         }
 
     });
-
+  
     $(document).click(function(){
         $("#collapse").popover("destroy");
     });
@@ -257,9 +275,11 @@ function orderInit(){
     var  init = function(){
         $("#reportForm textarea").textareaAutoResize({rows:1,cols:75, maxRow:10});
         closeLoading();
+        worklog.global.needWelcome() &&
         $("#collapse").popover({"content":"Hey, Welcome DDRT. Click here to add more issue !"}).popover('show');
-        showAnimated("#reports", "fadeInDownBig");
-        showAnimated("#submitReport", "fadeInUpBig");
+        setCookie(worklog.global.needWelcomeName, "1", 7);
+        showAnimated("#reports", "fadeInDown");
+        showAnimated("#submitReport", "fadeInUp");
         //initProjects().done(function(){initPagination();}).fail(closeLoading);
      }; 
     loadTodayIssues(init);
@@ -343,7 +363,7 @@ var submitReport = function(form){
         return;
     }
     showLoading("submit, please waiting...");
-    var reportObj = {"create": [], "update":[], "delete":[]},tr$, action="";
+    var reportObj = {"create": [], "update":[], "delete":[]},tr$, action="", item ={};
     $("#reports table tbody tr").each(function(){
         var tr$ = $(this);
         action = tr$.data("action");
@@ -417,16 +437,6 @@ var buildJQL = function(){
     if (project$.val() != -1) {
         jql += "project='" + project$.text() + "' and ";
     }
-    //var status = $("#issues-wrap input:checkbox[name=status]:checked");
-    // if (status.size() < 1) {
-    //     //alert("At least choose a status");
-    //     return;
-    // }
-    // var statusArr = [];
-    // status.each(function(){
-    //     statusArr.push(this.value);
-    // });
-    //jql += "status in ('" + statusArr.join("','") + "') order by created, priority desc";
     jql += "status='" + $("#selStatus option:selected").text() + "'";
     var query = {};
     query.jql = jql;
@@ -633,4 +643,21 @@ function sendAjax(url, beforeSend, successCallback, errorCallback, method, data,
 
 function showAnimated(objId, classes){
     $(objId).addClass(classes + ' animated');
+};
+
+function rememberMe(bol){
+    if (bol) {
+        var username = $("#username").val(), 
+        password = $("#password").val();
+        setCookie(worklog.global.ddrtSessionName, EnEight(username + worklog.global.cookieSplit + password), 30);
+    }
+};
+
+function getSession(){
+    var ddrt_cur_session = getCookie(worklog.global.ddrtSessionName);
+    if (ddrt_cur_session) {
+        var user = DeEight(ddrt_cur_session).split(worklog.global.cookieSplit);
+        return user;
+    }
+    return false;
 };

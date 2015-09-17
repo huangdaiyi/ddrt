@@ -44,3 +44,18 @@ function getStrLen(str){
     } 
     return realLength;
 };
+
+function EnEight(txt){
+    var monyer = new Array();var i,s;
+    for(i=0;i<txt.length;i++)
+        monyer+="\\"+txt.charCodeAt(i).toString(8); 
+    return monyer;
+};
+
+function DeEight(txt){
+    var monyer = new Array();var i;
+    var s=txt.split("\\");
+    for(i=1;i<s.length;i++)
+        monyer+=String.fromCharCode(parseInt(s[i],8));
+    return monyer;
+};

@@ -73,7 +73,7 @@ send_mail(#groups{id = ID, group_name = Name}) ->
                             {columns,
                              generate_colums(Today, DayNum, ["Team Member"])}]},
     Body = ddrt_runder:run(T),
-    %Mail = #mail{to = "Hardy.D.Huang@newegg.com", cc = "",
+    % Mail = #mail{to = "Hardy.D.Huang@newegg.com", cc = "",
     %             subject = Subject, body = Body},
     Mail = #mail{to=To, cc=Cc, subject=Subject, body=Body},
     spawn(ddrt_mail, send_mail, [Mail]).
@@ -126,7 +126,9 @@ fill_reports(Reports, User, Days) ->
                                                                 receive_type =
                                                                     User#group_user.receive_type,
                                                                 domain_name =
-                                                                    User#group_user.domain_name}
+                                                                    User#group_user.domain_name,
+                                                                domain_id =  
+                                                                    User#group_user.domain_id}
                                                    | Acct]
                                             end
                                     end,
