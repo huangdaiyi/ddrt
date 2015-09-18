@@ -72,7 +72,7 @@ get_params(IssueKey, LoginId ,Req) ->
 	 	{process_id, CrlNo} -> 
 	 		get_params_by_crlno_as_common_procid(CrlNo);
 	 	error ->
-	 		[{obj, FixVersion}|_] = proplists:get_value("fixVersions", Fields, []),
+	 		[{obj, FixVersion}|_] = proplists:get_value("fixVersions", Fields, [{obj, []}]),
 	 		FixVersionName = proplists:get_value("name", FixVersion),
 	 		DefaultCrlNo = get_common_crlno(FixVersionName, LoginId, Activity),
 	 		case log_decide(DefaultCrlNo) of
