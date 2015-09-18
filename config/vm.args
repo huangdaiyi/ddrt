@@ -8,4 +8,4 @@
 -pa deps/merl/ebin
 -pa deps/meck/ebin
 -s neg_hydra
--noshell 
+-noshell

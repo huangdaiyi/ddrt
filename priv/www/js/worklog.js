@@ -623,6 +623,7 @@ function sendAjax(url, beforeSend, successCallback, errorCallback, method, data,
             url: url,
             method: method || "GET", 
             data: data,
+            cache: false,
             dataType: dataType || "json",
             beforeSend:beforeSend,
             success: function(data, textStatus, jqXHR){

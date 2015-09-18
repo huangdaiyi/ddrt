@@ -180,8 +180,10 @@ local_time() ->
 
 to_integer(Bin) when is_binary(Bin) ->
     to_integer(binary_to_list(Bin));
-to_integer(List) ->
-    list_to_integer(List).
+to_integer(List) when is_list(List) ->
+    list_to_integer(List);
+to_integer(Num) -> Num.
+
 
 %%% ===================================================================
 %%% Tests  
