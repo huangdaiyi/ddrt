@@ -172,13 +172,17 @@ get_activity_crlno_mapping_by_group(GroupName, "STUDY & TRAINING")->
 get_activity_crlno_mapping_by_group(GroupName, Activity) ->
 	case ddrt_mssql_mgr:execute(?GET_CRLNO_BY_GROUP, [{{sql_varchar, 40}, [GroupName]}, {{sql_varchar, 40}, [ddrt_utils:string_to_binary(Activity)]}]) of
 		{selected, _, []} -> get_internal_key_crlno(GroupName);
-		{selected, _, [{CrlNo}|_]} -> ddrt_utils:to_integer(CrlNo)
+		{selected, _, [{CrlNo}|_]} -> ddrt_utils:to_integer(CrlNo);
+		{error, Reason} ->
+			throw({termination, 502, [], lists:flatten(io_lib:format("get_activity_crlno_mapping_by_group error, reason: ~w", [Reason]))})
 	end.
 
 get_internal_key_crlno(GroupName) ->
 	case ddrt_mssql_mgr:execute(?GET_CRLNO_BY_GROUP, [{{sql_varchar, 40}, [GroupName]}, {{sql_varchar, 40}, [<<"Internal">>]}]) of
 		{selected, _, []} -> 0; %throw({termination, 400, [], "The activityMap does not contain internal key"});
-		{selected, _, [{CrlNo}|_]} -> ddrt_utils:to_integer(CrlNo)
+		{selected, _, [{CrlNo}|_]} -> ddrt_utils:to_integer(CrlNo);
+		{error, Reason} ->
+			throw({termination, 502, [], lists:flatten(io_lib:format("get_internal_key_crlno error, reason: ~w", [Reason]))})
 	end.
 
 

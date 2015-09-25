@@ -57,7 +57,6 @@ exetuce_odbc(#connect{handler=ConnectRef, connect=Conn} = Connect, Sql, Params) 
 	case odbc:param_query(ConnectRef, Sql, Params) of
 		{error, connection_closed} ->
 			exetuce_odbc(Connect#connect{handler=get_connect(Conn)}, Sql, Params);
-		% {error, Reason} -> error;
 		Result  -> {Connect, Result}
 	end.
 
