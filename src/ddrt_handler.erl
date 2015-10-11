@@ -46,6 +46,29 @@ check_login_jira(Req) ->
 %%%================================================
 %%% get request
 %%%================================================
+do_get(["logs", Dir, Log], _DocRoot, Req) ->
+    Req:call(serve_file, Log, filename:join("logs", Dir)),
+    {200, [], <<>>};
+
+do_get(["logs" | Name], _DocRoot, _Req) ->
+    Headers = [{"Content-Type", "text/html"} ],
+    Html = <<"<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">"
+    "<html><head>"
+    "<title>DDRT Logs</title>"
+    "</head><body>"
+    "<h3>DDRT Logs</h3>">>,
+    LogDir = filename:join("logs", Name),
+    {ok, Files} = file:list_dir(LogDir),
+    FileList = lists:foldr(fun (F, Acct) ->
+        <<Acct/binary, 
+        <<"<li><a href=\"/">>/binary, 
+        (list_to_binary(filename:join(LogDir, F)))/binary,
+        <<"\">">>/binary, 
+        (list_to_binary(F))/binary, 
+        <<"</a></li>">>/binary >> end,
+        <<"<p><ul>">>, Files),
+    {200, Headers, << Html/binary, FileList/binary, <<"</ul></p></body></html>\n">>/binary >>};
+
 do_get(["api", "v1", "users"|_], _DocRoot, _Req) ->
     Result = ddrt_db:select(get_users,userentity,[]),
     Json = ddrt_utils:user_format(Result),
@@ -262,7 +285,7 @@ create_reports(CreateReports, UserId, LoginId, Username, Datetime, Req) ->
                 ok ->  ddrt_db:create_history_issue(Key, UserId);
                  _ ->  throw({termination, 500, [], <<"Failed">>})
             end,
-            ddrt_crl:add_dailyhour([{"id", WorklogId} | R], LoginId, Username, Req),
+            ddrt_crl:add_dailyhour([{"id", WorklogId} | R], LoginId, Username, UserId, Req),
             {obj, [{"issue", Key}, {"id", WorklogId}]}
     end || {obj, R} <- CreateReports].
 
@@ -284,8 +307,8 @@ update_reports(UpdateReports, UserId, LoginId, Username, Datetime, Req) ->
                      _ -> throw({termination, 500, [], <<"Failed">>})
                 end; 
             {404, _, _} -> 
-                [Item] = create_reports([{obj, proplists:delete("id", R)}], UserId, LoginId, Username, Datetime, Req),
-                ddrt_db:delete_report([WorklogId], UserId), Item;
+                ddrt_db:delete_report([WorklogId], UserId),
+                [Item] = create_reports([{obj, proplists:delete("id", R)}], UserId, LoginId, Username, Datetime, Req), Item;
             {StatusCode, Headers, Message} -> throw({termination, StatusCode, Headers, Message})
         end
     end || {obj, R} <- UpdateReports].

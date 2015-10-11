@@ -8,7 +8,7 @@
 
 -export([get_not_report_emails/1,get_not_report_emails/2, get_group_report_user/1]).
 -export([get_scheduling/1, check_today_report_by_email/1, get_user_by_email/1, get_user_report/3]).
--export ([update_report/5, delete_report/2, create_history_issue/2, get_prev_issues/1]).
+-export ([update_report/5, delete_report/2, create_history_issue/2, get_prev_issues/1, get_user_email/1]).
 
 
 %%
@@ -52,7 +52,9 @@ get_record_info(group_report_user) ->
 get_record_info(scheduling) ->
     record_info(fields, scheduling);
 get_record_info(history_issue) ->
-    record_info(fields, history_issue).
+    record_info(fields, history_issue);
+get_record_info(user_email) ->
+    record_info(fields, user_email).
 
 update(Pre, Params)
     when is_atom(Pre), is_list(Params) ->
@@ -126,6 +128,9 @@ check_today_report_by_email(Email) ->
 get_group_report_user(GroupID) ->
     select(get_group_report_user, group_report_user,
            [GroupID]).
+
+get_user_email(UserId) ->
+    select(get_user_email, user_email, [UserId]).
 
 get_group_users(GroupID) ->
     select(get_group_user, group_user, [GroupID]).

@@ -8,6 +8,8 @@
 INNER JOIN groups_users AS gu ON u.id=gu.user_id INNER JOIN groups AS g ON gu.group_id=g.id LEFT JOIN
 domains AS d ON gu.domain_id=d.id WHERE u.id = ?">>},
 
+{get_user_email, <<"SELECT `email` , `user_name` FROM `users` WHERE `id` = ?">>},
+
 {get_user_by_email, <<"SELECT u.id, u.email,u.`type`,gu.receive_type,g.`name` AS group_name,g.template,d.`name` AS domain_name FROM users AS u
 INNER JOIN groups_users AS gu ON u.id=gu.user_id INNER JOIN groups AS g ON gu.group_id=g.id LEFT JOIN
 domains AS d ON gu.domain_id=d.id WHERE u.email = ?">>},

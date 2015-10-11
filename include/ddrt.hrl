@@ -15,6 +15,8 @@
 
 -record (group_report_user, {email, user_name, user_id}).
 
+-record (user_email, {user_name, email}).
+
 -record (mail, {to, cc="", subject, body}).
 
 -record(member,{id,email}).%can be a domain member,or a member that in a group but not in a domain 

@@ -3,6 +3,7 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, code_change/3,  terminate/2]).
 -export ([start_link/2, execute/3, execute_sync/3]).
 -record (connect, {connect, handler}).
+-define (MAXTRY, 3).
 
 %%%================================================
 %%% public api
@@ -52,11 +53,20 @@ terminate(_Reason, _State) ->
 	%%ddrt_mssql_mgr:update(self(), Conn),
 	ok.
 
+exetuce_odbc(Connect, Sql, Params) ->
+	exetuce_odbc(Connect, Sql, Params, 1).
 
-exetuce_odbc(#connect{handler=ConnectRef, connect=Conn} = Connect, Sql, Params) ->
+exetuce_odbc(#connect{handler=ConnectRef, connect=Conn} = Connect, Sql, Params, TryCount) ->
 	case odbc:param_query(ConnectRef, Sql, Params) of
 		{error, connection_closed} ->
-			exetuce_odbc(Connect#connect{handler=get_connect(Conn)}, Sql, Params);
+			exetuce_odbc(Connect#connect{handler=get_connect(Conn)}, Sql, Params, TryCount);
+		{error, Reason} ->
+			if
+				TryCount > ?MAXTRY -> {Connect, {error, Reason}};
+				true -> 
+					NewTryCount = TryCount + 1,
+					exetuce_odbc(Connect#connect{handler=get_connect(Conn)}, Sql, Params, NewTryCount)
+			end;
 		Result  -> {Connect, Result}
 	end.
 
