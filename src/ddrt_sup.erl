@@ -6,6 +6,7 @@
 start_link() ->
 	% Here did not start a new process 
     inets:start(),
+    ssl:start(),
     ddrt_db:start(),
     ok = odbc:start(),
     supervisor:start_link({local, ?MODULE}, ?MODULE, []).

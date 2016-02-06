@@ -162,7 +162,7 @@ add_commonprocess_map(FixVersion, Author, Activity) ->
 	case ddrt_mssql_mgr:execute(?ADD_COMMONPROCESS_MAP, [{{sql_char,20},[ddrt_utils:string_to_binary(Author)]}, 
 		{{sql_wvarchar, 200}, [ddrt_utils:to_sql_wvarchar("Project For Jira:" ++ FixVersion)]},
 		{{sql_wvarchar, 200}, [ddrt_utils:to_sql_wvarchar(FixVersion)]}])  of
-		{updated, 2} -> get_common_crlno(FixVersion, Author, Activity);
+		{updated, _} -> get_common_crlno(FixVersion, Author, Activity);
 		Error -> {error, Error}
 	end.
 
